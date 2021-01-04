@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <map>
+#include <functional>
 
 namespace script {
 
@@ -19,8 +20,11 @@ class parser {
 	//!Root mode, little more than declaring scripts
 	void                    root_mode();
 
-	//!Linear mode inside a script.
+	//!Starts a script.
 	void                    script_mode(const std::string&, const std::vector<variable>&, int);
+
+	//!Regular operation parsing mode.
+	void                    instruction_mode(std::function<bool(const token&)>, int, const std::string&);
 
 	//!Reading bracket delimiter arguments.
 	std::vector<variable>   arguments_mode();
@@ -36,6 +40,9 @@ class parser {
 
 	//!Reading a procedure (out, fail...)
 	void                    add_procedure(token::types, std::vector<variable>&, int);
+
+	//!Adds a new context.to the given script.
+	void                    add_context(context::types, script&);
 
 	//!Throws if the next token is not of the given type. Returns next token.
 	token                   expect(token::types, const std::string&);

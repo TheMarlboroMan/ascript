@@ -63,24 +63,40 @@ void parser::script_mode(
 		}
 	);
 
+	//Clear the current script...
 	current_script.contexts.clear();
-	current_script.contexts.push_back(
-		{
-			context::types::linear, 
-			std::vector<std::unique_ptr<instruction>>{}
-		}
+	add_context(context::types::linear, current_script);
+
+	instruction_mode(
+		[](const token& _tok) {
+
+			return _tok.type==token::types::kw_endscript;
+		},
+		_context_index,
+		"unexpected end of file, expected endscript;"
 	);
+
+	//Cleanup last semicolon, of course.
+	expect(token::types::semicolon, "endscript must be followed by a semicolon");
+	scripts.insert(std::make_pair(_scriptname, std::move(current_script)));
+}
+
+void parser::instruction_mode(
+	std::function<bool(const token&)> _fn_end,
+	int _context_index,
+	const std::string& _eof_err_msg
+) {
 
 	while(tokens.size()) {
 
 		auto token=extract();
-		
-		switch(token.type) {
-			case token::types::kw_endscript:
 
-				expect(token::types::semicolon, "endscript must be followed by a semicolon");
-				scripts.insert(std::make_pair(_scriptname, std::move(current_script)));
-				return;
+		if(_fn_end(token)) {
+
+			return;
+		}
+
+		switch(token.type) {
 			case token::types::kw_return:
 				expect(token::types::semicolon, "return must be followed by a semicolon");
 				current_script.contexts[_context_index].instructions.emplace_back(
@@ -122,7 +138,7 @@ void parser::script_mode(
 		}
 	}
 
-	throw std::runtime_error("unexpected end of file, expected endscript;");
+	throw std::runtime_error(_eof_err_msg);
 }
 
 void parser::conditional_branch_mode(
@@ -135,39 +151,24 @@ void parser::conditional_branch_mode(
 	expect(token::types::semicolon, "conditional branch declaration must end with semicolon");
 
 	instruction_conditional_branch * ifbr=new instruction_conditional_branch();
-	//TODO!!
-	int next_context_index=999;
+
+	add_context(context::types::linear, current_script);
+	int next_context_index=current_script.contexts.size()-1;
 	ifbr->branches.push_back({std::move(fnptr), next_context_index});
 
-	//TODO:
-	//This goes at the end...
+	//Now we run the linear mode with this next context...
+	instruction_mode(
+		[](const token& _tok) -> bool {return true;},
+		next_context_index,
+		"unexpected end of file, expected else, elseif or endif"
+	);
+
+
+	//Once all branches are evaluated, we put the if instruction in the original
+	//context.
 	current_script.contexts[_context_index].instructions.emplace_back(
 		ifbr
 	);
-
-	/*
-struct conditional_path {
-
-	std::unique_ptr<instruction_function>   function;
-	int                                     target_context_index;
-}
-
-//!instruction to execute conditional logic.
-struct instruction_conditional_branch {
-
-	std::vector<conditional_path>           branches;
-}
-*/
-	
-	//TODO: first, we can add a new context, right? a linear context and 
-
-	//TODO: with this shit we can build an if 
-	//instruction and keep reading until "elseif, else or endif".
-	//TODO: let's see how we handle this...
-
-/*
-if (function call)... or maybe if (boolean var)
-*/
 }
 
 //!Retrieves the parameters from the node previous to [ to ].
@@ -393,3 +394,16 @@ token parser::peek() {
 	return token;
 }
 
+
+void parser::add_context(
+	context::types _type, 
+	script& _script
+) {
+
+	_script.contexts.push_back(
+		{
+			_type,
+			std::vector<std::unique_ptr<instruction>>{}
+		}
+	);
+}
