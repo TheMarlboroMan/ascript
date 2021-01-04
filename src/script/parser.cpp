@@ -25,6 +25,13 @@ void parser::root_mode() {
 
 		script_mode(scriptname.str_val);
 	};
+
+/*
+	for(const auto& script : scripts) {
+
+		std::cout<<script.second<<std::endl;
+	}
+*/
 }
 
 void parser::script_mode(
@@ -48,9 +55,7 @@ void parser::script_mode(
 			case token::types::kw_endscript:
 
 				expect(token::types::semicolon);
-
-				//TODO: Close script, MOVE it to the container be done;
-				std::cout<<current_script<<std::endl;
+				scripts.insert(std::make_pair(_scriptname, std::move(current_script)));
 				return;
 			case token::types::kw_return:{
 
@@ -62,9 +67,12 @@ void parser::script_mode(
 			}
 			break;
 			case token::types::fn_out:
+			case token::types::fn_fail:
 
 				function_mode(token.type, 0);
 			break;
+
+			//TODO: next, let.
 
 			default:
 				throw std::runtime_error(
@@ -143,6 +151,12 @@ void parser::add_function(
 			current_script.contexts[_context_index].instructions.emplace_back(
 				new instruction_out(_parameters)
 			);
+			return;
+		case token::types::fn_fail:
+			current_script.contexts[_context_index].instructions.emplace_back(
+				new instruction_fail(_parameters)
+			);
+			return;
 			return;
 		default:
 			throw std::runtime_error(

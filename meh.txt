@@ -5,6 +5,7 @@ endscript;
 
 beginscript myscript002;
 	out ["this is another idea", 33, false];
+	fail ["ok this failed"];
 	return;
+#I GUESS LET is next... we can start with static values first.
 endscript;
-

@@ -1,8 +1,10 @@
 #pragma once
 
-#include <vector>
 #include "parser_nodes.h"
 #include "token.h"
+
+#include <vector>
+#include <map>
 
 namespace script {
 
@@ -23,6 +25,7 @@ class parser {
 	token                   peek();
 
 	std::vector<token>      tokens;
+	std::map<std::string, script> scripts;
 	script                  current_script;
 };
 

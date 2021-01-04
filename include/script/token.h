@@ -21,8 +21,8 @@ struct token {
 		fn_host_set,
 		fn_host_query,
 		fn_host_do,
-		fn_out,
-		fn_fail,
+		fn_out, //done
+		fn_fail, //done
 		kw_not,
 		kw_if, 
 		kw_elseif,
@@ -32,7 +32,7 @@ struct token {
 		kw_break,
 		kw_endloop,
 		kw_yield,
-		kw_return,
+		kw_return, //done
 		kw_let,
 		kw_be,
 		kw_integer,

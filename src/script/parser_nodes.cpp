@@ -118,6 +118,23 @@ void instruction_out::format_out(
 	_stream<<"]";
 }
 
+instruction_fail::instruction_fail(
+	std::vector<variable>& _params
+):
+	parameters{_params}
+{
+}
+
+void instruction_fail::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"fail[";
+	for(const auto& var : parameters) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
 
 void instruction_return::format_out(
 	std::ostream& _stream

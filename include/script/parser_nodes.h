@@ -32,6 +32,14 @@ struct instruction_out:instruction {
 	void                    format_out(std::ostream&) const;
 };
 
+struct instruction_fail:instruction {
+
+	                        instruction_fail(std::vector<variable>&);
+	std::vector<variable>   parameters;
+
+	void                    format_out(std::ostream&) const;
+};
+
 struct instruction_return:instruction {
 
 	void                    format_out(std::ostream&) const;
