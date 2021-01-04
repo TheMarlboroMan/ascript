@@ -1,11 +1,11 @@
-#include "parser.h"
+#include "ascript/parser.h"
 
 #include <stdexcept>
 #include <algorithm>
 //TODO:
 #include <iostream>
 
-using namespace script;
+using namespace ascript;
 
 void parser::parse(
 	const std::vector<token>& _tokens
@@ -119,7 +119,10 @@ void parser::instruction_mode(
 				variable_declaration_mode(_context_index);
 			break;
 			case token::types::pr_out:
-			case token::types::pr_fail:{
+			case token::types::pr_fail:
+			case token::types::pr_host_set:
+			case token::types::pr_host_add:
+			case token::types::pr_host_do: {
 				auto args=arguments_mode();
 				add_procedure(token.type, args, _context_index);
 				expect(token::types::semicolon, "procedure call arguments must be followed by a semicolon");
@@ -128,11 +131,14 @@ void parser::instruction_mode(
 			case token::types::kw_if:
 				conditional_branch_mode(_context_index);
 			break;
+			case token::types::kw_loop:
+				loop_mode(_context_index);
+			break;
 			default:
 				throw std::runtime_error(
 					std::string{"unexpected '"}
 					+type_to_str(token.type)
-					+"' on line "
+					+"' when parsing instructions on line "
 					+std::to_string(token.line_number)
 				);
 		}
@@ -141,28 +147,109 @@ void parser::instruction_mode(
 	throw std::runtime_error(_eof_err_msg);
 }
 
+void parser::loop_mode(
+	int _context_index
+) {
+	expect(token::types::semicolon, "loop must be followed by a semicolon");
+
+	add_context(context::types::loop, current_script);
+	int next_context_index=current_script.contexts.size()-1;
+
+	instruction_mode(
+		[](const token& _tok) -> bool {
+			return _tok.type==token::types::kw_endloop;
+		},
+		next_context_index,
+		"unexpected end of file, expected endloop"
+	);
+
+	expect(token::types::semicolon, "endloop must be followed by a semicolon");
+
+	current_script.contexts[_context_index].instructions.emplace_back(
+		new instruction_loop(next_context_index)
+	);
+}
+
 void parser::conditional_branch_mode(
 	int _context_index
 ) {
-	//if fn [arg, arg, arg];
+	//TODO: this needs a refactor... 
+
+	//if [not] fn [arg, arg, arg];
+
+	bool negated=false;
+	if(peek().type==token::types::kw_not) {
+
+		negated=true;
+		extract();
+	}
+
 	auto function=extract();
 	auto fnptr=build_function(function.type);
 	fnptr->arguments=arguments_mode();
-	expect(token::types::semicolon, "conditional branch declaration must end with semicolon");
+	expect(token::types::semicolon, "function for conditional branch declaration start must end with semicolon");
 
 	instruction_conditional_branch * ifbr=new instruction_conditional_branch();
 
+	//Add a new context for the first branch...
 	add_context(context::types::linear, current_script);
 	int next_context_index=current_script.contexts.size()-1;
-	ifbr->branches.push_back({std::move(fnptr), next_context_index});
+	ifbr->branches.push_back({std::move(fnptr), next_context_index, negated});
 
-	//Now we run the linear mode with this next context...
-	instruction_mode(
-		[](const token& _tok) -> bool {return true;},
-		next_context_index,
-		"unexpected end of file, expected else, elseif or endif"
-	);
+	//Now we run the linear mode with this next context... We store the last 
+	//breaking token so we can know if we need to look for more branches.
+	token::types last_type=token::types::kw_if;
 
+	while(true) {
+
+		instruction_mode(
+			[&last_type, this](const token& _tok) -> bool {
+				
+				if(_tok.type==token::types::kw_elseif 
+					|| _tok.type==token::types::kw_else
+					|| _tok.type==token::types::kw_endif
+				) {
+					last_type=_tok.type;
+					return true;
+				}
+			
+				return false;
+			},
+			next_context_index,
+			"unexpected end of file, expected else, elseif or endif"
+		);
+
+		if(last_type==token::types::kw_elseif) {
+
+			bool negated=false;
+			if(peek().type==token::types::kw_not) {
+
+				negated=true;
+				extract();
+			}
+
+			auto function=extract();
+			auto fnptr=build_function(function.type);
+			fnptr->arguments=arguments_mode();
+			expect(token::types::semicolon, "function for subsequent conditional branch declarations must end with semicolon");
+
+			add_context(context::types::linear, current_script);
+			next_context_index=current_script.contexts.size()-1;
+			ifbr->branches.push_back({std::move(fnptr), next_context_index, negated});
+		}
+		else if(last_type==token::types::kw_else) {
+
+			add_context(context::types::linear, current_script);
+			next_context_index=current_script.contexts.size()-1;
+			ifbr->branches.push_back({nullptr, next_context_index, false});
+			expect(token::types::semicolon, "else must end with a semicolon");
+		}
+		else if(last_type==token::types::kw_endif) {
+
+			expect(token::types::semicolon, "endif must end with a semicolon");
+			break;
+		}
+	}
 
 	//Once all branches are evaluated, we put the if instruction in the original
 	//context.
@@ -257,7 +344,11 @@ void parser::variable_declaration_mode(
 			return;
 		case token::types::fn_is_equal:
 		case token::types::fn_is_lesser_than:
-		case token::types::fn_is_greater_than: {
+		case token::types::fn_is_greater_than: 
+		case token::types::fn_host_has:
+		case token::types::fn_host_get:
+		case token::types::fn_host_query:
+		{
 
 			auto fnptr=build_function(value.type);
 			fnptr->arguments=arguments_mode();
@@ -298,6 +389,15 @@ std::unique_ptr<instruction_function> parser::build_function(
 		case token::types::fn_is_greater_than:
 			fnptr.reset(new instruction_is_greater_than());
 			return fnptr;
+		case token::types::fn_host_has:
+			fnptr.reset(new instruction_host_has()); 
+			return fnptr;
+		case token::types::fn_host_get:
+			fnptr.reset(new instruction_host_get()); 
+			return fnptr;
+		case token::types::fn_host_query:
+			fnptr.reset(new instruction_host_query()); 
+			return fnptr;
 
 		default: 
 			throw std::runtime_error(
@@ -312,28 +412,40 @@ std::unique_ptr<instruction_function> parser::build_function(
 
 void parser::add_procedure(
 	token::types _type, 
-	std::vector<variable>& _parameters,
+	std::vector<variable>& _arguments,
 	int _context_index
 ) {
+	instruction_procedure * prptr{nullptr};
+
 	switch(_type) {
 		case token::types::pr_out:
-			current_script.contexts[_context_index].instructions.emplace_back(
-				new instruction_out(_parameters)
-			);
-			return;
+			prptr=new instruction_out();
+		break;
 		case token::types::pr_fail:
-			current_script.contexts[_context_index].instructions.emplace_back(
-				new instruction_fail(_parameters)
-			);
-			return;
-			return;
+			prptr=new instruction_fail();
+		break;
+		case token::types::pr_host_set:
+			prptr=new instruction_host_set();
+		break;
+		case token::types::pr_host_add:
+			prptr=new instruction_host_add();
+		break;
+		case token::types::pr_host_do:
+			prptr=new instruction_host_do();
+		break;
 		default:
 			throw std::runtime_error(
-				std::string{"unknown function type '"}
+				std::string{"unknown procedure type '"}
 				+type_to_str(_type)
 				+"'"
 			);
 	}
+
+	prptr->arguments=_arguments;
+
+	current_script.contexts[_context_index].instructions.emplace_back(
+		prptr
+	);
 }
 
 token parser::expect(

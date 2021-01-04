@@ -1,4 +1,4 @@
-#include "script/tokenizer.h"
+#include "ascript/tokenizer.h"
 
 #include <tools/file_utils.h>
 #include <tools/string_utils.h>
@@ -9,7 +9,7 @@
 #include <sstream>
 #include <cstdlib>
 
-using namespace script;
+using namespace ascript;
 
 tokenizer::tokenizer() {
 
@@ -44,18 +44,18 @@ tokenizer::tokenizer() {
 	typemap["endscript"]=token::types::kw_endscript;
 }
 
-std::vector<script::token> tokenizer::from_file(
+std::vector<ascript::token> tokenizer::from_file(
 	const std::string& _filename
 ) {
 
 	return from_string(tools::dump_file(_filename));
 }
 
-std::vector<script::token> tokenizer::from_string(
+std::vector<ascript::token> tokenizer::from_string(
 	const std::string& _str
 ) {
 
-	std::vector<script::token> result;
+	std::vector<ascript::token> result;
 	tools::string_reader reader{_str, '#', tools::string_reader::flags::ltrim | tools::string_reader::flags::rtrim};
 
 	while(true) {

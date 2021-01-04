@@ -7,7 +7,7 @@
 #include <map>
 
 
-namespace script {
+namespace ascript {
 
 class tokenizer {
 

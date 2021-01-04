@@ -3,7 +3,7 @@
 #include <string>
 #include <ostream>
 
-namespace script {
+namespace ascript {
 
 struct token {
 
@@ -15,22 +15,22 @@ struct token {
 		fn_is_equal, //done
 		fn_is_greater_than, //done
 		fn_is_lesser_than, //done
-		fn_host_has,
-		fn_host_get,
-		fn_host_query,
-		pr_host_set,
-		pr_host_add,
-		pr_host_do,
+		fn_host_has, //done
+		fn_host_get, //done
+		fn_host_query, //done
+		pr_host_set, //done
+		pr_host_add, //done
+		pr_host_do, //done
 		pr_out, //done
 		pr_fail, //done
-		kw_not,
-		kw_if, 
-		kw_elseif,
-		kw_else,
-		kw_endif,
-		kw_loop,
+		kw_not, //done
+		kw_if, //done
+		kw_elseif, //done
+		kw_else, //done
+		kw_endif, //done
+		kw_loop, //done
 		kw_break, //done
-		kw_endloop,
+		kw_endloop, //done
 		kw_yield, //done
 		kw_return, //done
 		kw_let, //done
@@ -39,8 +39,8 @@ struct token {
 		kw_string,
 		kw_bool,
 		kw_as,
-		kw_beginscript,
-		kw_endscript,
+		kw_beginscript, //done
+		kw_endscript, //done
 		semicolon,
 		comma,
 		open_bracket,

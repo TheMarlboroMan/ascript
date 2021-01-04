@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "script/tokenizer.h"
-#include "script/parser.h"
+#include "ascript/tokenizer.h"
+#include "ascript/parser.h"
 
 int main(
 	int _argc,
@@ -15,14 +15,14 @@ int main(
 	}
 
 	try {
-		script::tokenizer tk;
+		ascript::tokenizer tk;
 		const auto tokens=tk.from_file(_argv[1]);
 
 		for(const auto& r : tokens) {
 			std::cout<<r<<std::endl;
 		}
 
-		script::parser p;
+		ascript::parser p;
 		p.parse(tokens);
 
 		return 0;

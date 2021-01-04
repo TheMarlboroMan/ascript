@@ -16,28 +16,35 @@ beginscript unparametrised_script;
 
 	out ["string", 12, true, justice, number, there, same, lesser, greater];
 
-	#TODO: I guess it's time for this...
 	if is_equal [same, true];
-#		out["1, 1 and 2 are the same"];
-#	endif;
 
-#	fail ["ok this failed", justice];
+		out ["1, 1 and 2 are the same"];
+		if is_equal [lesser, true];
+			out ["oh well"];
+			fail ["ok this failed", justice];
+		endif;
+	elseif not is_equal [false, false];
+		out ["this will surely never happen"];
+	else;
+		out ["1, 1 and 2 are NOT the same"];
+		return;
+	endif;
 
+	loop;
+		if is_equal [true, true];
+			break;
+		endif;
+		yield;
+	endloop;
 
-# i guess I read the condition and then... what? if mode is like a context, 
-# right? I need to create an instruction and a new linear context and then
-# i keep reading until endif... but of course, there's else. And there's
-# elseif... All these would be different contexts and would need to be added
-# to the very same instruction, right? it could be something like 
-# branch with N conditions, N contexts and an extra else context.
+	let exists be host_has ["crap"];
+	if not is_equal [exists, true];
+		host_add ["crap", 99];
+		host_set ["crap", 100];
+		let crap be host_get ["crap"];
+		host_do ["burnall", crap];
+	endif;
 
-
-#	if not is_equal [same, true]
-#		out["1, 1 and 2 are NOT the same"]
-#	endif
-
-#	yield;
-#	break;
-#	return;
+	let meh be host_query ["tralala"];
 
 endscript;

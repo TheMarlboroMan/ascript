@@ -7,7 +7,7 @@
 #include <map>
 #include <functional>
 
-namespace script {
+namespace ascript {
 
 class parser {
 
@@ -37,6 +37,9 @@ class parser {
 
 	//!Reading if branches...
 	void                    conditional_branch_mode(int);
+
+	//!Reading loops...
+	void                    loop_mode(int);
 
 	//!Reading a procedure (out, fail...)
 	void                    add_procedure(token::types, std::vector<variable>&, int);

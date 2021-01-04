@@ -1,6 +1,6 @@
-#include "parser_nodes.h"
+#include "ascript/parser_nodes.h"
 
-using namespace script;
+using namespace ascript;
 
 variable::variable(
 	bool _val
@@ -45,18 +45,6 @@ variable::variable(
 
 }
 
-instruction_out::instruction_out(
-	std::vector<variable>& _args
-):
-	arguments{_args}
-{}
-
-instruction_fail::instruction_fail(
-	std::vector<variable>& _args
-):
-	arguments{_args}
-{}
-
 instruction_declaration_static::instruction_declaration_static(
 	const std::string& _identifier, 
 	const variable& _value
@@ -71,6 +59,12 @@ instruction_declaration_dynamic::instruction_declaration_dynamic(
 ):
 	identifier(_identifier),
 	function{std::move(_fn)}
+{}
+
+instruction_loop::instruction_loop(
+	int _target_context_index
+):
+	target_context_index{_target_context_index}
 {}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,6 +86,39 @@ void instruction_fail::format_out(
 ) const {
 
 	_stream<<"fail[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_host_set::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"host_set[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_host_add::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"host_add[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_host_do::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"host_do[";
 	for(const auto& var : arguments) {
 		_stream<<var<<",";
 	}
@@ -125,6 +152,39 @@ void instruction_is_lesser_than::format_out(
 ) const {
 
 	_stream<<"is_lesser_than[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_host_has::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"host_has[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_host_get::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"host_get[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_host_query::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"host_query[";
 	for(const auto& var : arguments) {
 		_stream<<var<<",";
 	}
@@ -176,10 +236,17 @@ void instruction_conditional_branch::format_out(
 	}
 }
 
+void instruction_loop::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"jump to and loop "<<target_context_index<<std::endl;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // ostream overloads.
 
-std::ostream& script::operator<<(
+std::ostream& ascript::operator<<(
 	std::ostream& _stream, 
 	const variable& _var
 ) {
@@ -203,7 +270,7 @@ std::ostream& script::operator<<(
 	return _stream;
 }
 
-std::ostream& script::operator<<(
+std::ostream& ascript::operator<<(
 	std::ostream& _stream, 
 	const instruction& _instruction
 ) {
@@ -212,7 +279,7 @@ std::ostream& script::operator<<(
 	return _stream;
 }
 
-std::ostream& script::operator<<(
+std::ostream& ascript::operator<<(
 	std::ostream& _stream, 
 	const context& _context
 ) {
@@ -235,7 +302,7 @@ std::ostream& script::operator<<(
 	return _stream;
 }
 
-std::ostream& script::operator<<(
+std::ostream& ascript::operator<<(
 	std::ostream& _stream, 
 	const script& _script
 ) {
@@ -247,16 +314,18 @@ std::ostream& script::operator<<(
 		_stream<<paramname<<",";
 	}
 
+	int context_index=0;
+
 	_stream<<"]"<<std::endl<<"contexts:["<<std::endl;
 	for(const auto& ctx : _script.contexts) {
 
-		_stream<<ctx<<std::endl;
+		_stream<<"["<<(context_index++)<<"]"<<ctx<<std::endl;
 	}
 
 	return _stream;
 }
 
-std::ostream& script::operator<<(
+std::ostream& ascript::operator<<(
 	std::ostream& _stream, 
 	const conditional_path& _branch
 ) {
@@ -266,7 +335,12 @@ std::ostream& script::operator<<(
 	}
 	else {
 
-		_stream<<"if "<<(*_branch.function)<<" jump to "<<_branch.target_context_index;
+		_stream<<"if ";
+		if(_branch.negated) {
+			_stream<<"not ";
+		}
+		
+		_stream<<(*_branch.function)<<" jump to "<<_branch.target_context_index;
 	}
 
 	return _stream;

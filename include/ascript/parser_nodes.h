@@ -5,7 +5,7 @@
 #include <memory>
 #include <ostream>
 
-namespace script {
+namespace ascript {
 
 struct variable {
 
@@ -29,20 +29,36 @@ struct instruction {
 	virtual void            format_out(std::ostream&) const=0;
 };
 
-//instruction to print something out.
-struct instruction_out:instruction {
+//Base class for all instructions that will execute something without returning
+//anything.
+struct instruction_procedure:instruction {
 
-	                        instruction_out(std::vector<variable>&);
 	std::vector<variable>   arguments;
+};
+
+//instruction to print something out.
+struct instruction_out:instruction_procedure {
 
 	void                    format_out(std::ostream&) const;
 };
 
 //instruction to stop execution of script with error
-struct instruction_fail:instruction {
+struct instruction_fail:instruction_procedure {
 
-	                        instruction_fail(std::vector<variable>&);
-	std::vector<variable>   arguments;
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_host_set:instruction_procedure {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_host_add:instruction_procedure {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_host_do:instruction_procedure {
 
 	void                    format_out(std::ostream&) const;
 };
@@ -69,6 +85,21 @@ struct instruction_is_lesser_than:instruction_function {
 
 //instruction to compare the first parameter with the rest
 struct instruction_is_greater_than:instruction_function {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_host_has:instruction_function {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_host_get:instruction_function {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_host_query:instruction_function {
 
 	void                    format_out(std::ostream&) const;
 };
@@ -116,12 +147,22 @@ struct conditional_path {
 
 	std::unique_ptr<instruction_function>   function;
 	int                                     target_context_index;
+	bool                                    negated;
 };
 
 //!instruction to execute conditional logic.
 struct instruction_conditional_branch:instruction {
 
 	std::vector<conditional_path>           branches;
+
+	void                    format_out(std::ostream&) const;
+};
+
+//!instruction to execute a loop.
+struct instruction_loop:instruction {
+
+	                        instruction_loop(int);
+	int                     target_context_index;
 
 	void                    format_out(std::ostream&) const;
 };

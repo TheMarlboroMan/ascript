@@ -1,8 +1,8 @@
-#include "script/token.h"
+#include "ascript/token.h"
 
-using namespace script;
+using namespace ascript;
 
-std::string script::type_to_str(
+std::string ascript::type_to_str(
 	token::types _type
 ) {
 
@@ -49,7 +49,7 @@ std::string script::type_to_str(
 	return "";
 }
 
-std::ostream& script::operator<<(
+std::ostream& ascript::operator<<(
 	std::ostream& _stream,
 	const token& _token
 ) {
