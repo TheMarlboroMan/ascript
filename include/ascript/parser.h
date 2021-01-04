@@ -13,7 +13,7 @@ class parser {
 
 	public:
 
-	void                    parse(const std::vector<token>&);
+	std::vector<script>     parse(const std::vector<token>&);
 
 	private:
 
@@ -57,7 +57,7 @@ class parser {
 	token                   peek();
 
 	std::vector<token>      tokens;
-	std::map<std::string, script> scripts;
+	std::vector<script>     scripts;
 	script                  current_script;
 };
 

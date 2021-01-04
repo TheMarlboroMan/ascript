@@ -7,12 +7,13 @@
 
 using namespace ascript;
 
-void parser::parse(
+std::vector<script> parser::parse(
 	const std::vector<token>& _tokens
 ) {
 
 	tokens={_tokens};
 	root_mode();
+	return std::move(scripts);
 }
 
 void parser::root_mode() {
@@ -36,11 +37,6 @@ void parser::root_mode() {
 		//This mode takes care of the final semicolon after endscript.
 		script_mode(scriptname.str_val, params, 0);
 	};
-
-	for(const auto& script : scripts) {
-
-		std::cout<<script.second<<std::endl;
-	}
 }
 
 void parser::script_mode(
@@ -78,7 +74,7 @@ void parser::script_mode(
 
 	//Cleanup last semicolon, of course.
 	expect(token::types::semicolon, "endscript must be followed by a semicolon");
-	scripts.insert(std::make_pair(_scriptname, std::move(current_script)));
+	scripts.emplace_back(std::move(current_script));
 }
 
 void parser::instruction_mode(

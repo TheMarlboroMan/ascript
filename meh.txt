@@ -48,3 +48,4 @@ beginscript unparametrised_script;
 	let meh be host_query ["tralala"];
 
 endscript;
+

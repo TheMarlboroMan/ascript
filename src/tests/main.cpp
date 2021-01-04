@@ -23,7 +23,11 @@ int main(
 		}
 
 		ascript::parser p;
-		p.parse(tokens);
+		const auto scripts=p.parse(tokens);
+		for(const auto& script : scripts) {
+
+			std::cout<<script<<std::endl;
+		}
 
 		return 0;
 	}
