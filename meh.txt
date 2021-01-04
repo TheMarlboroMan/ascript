@@ -1,11 +1,15 @@
-beginscript myscript001;
-	out ["this is my idea", 12, true];
-	return;
-endscript;
-
 beginscript myscript002;
+
+	let justice be true;
+	let number be 666;
+	let there be "light";
+	let same be is_equal [1, 1, 2];
+
 	out ["this is another idea", 33, false];
-	fail ["ok this failed"];
+	out [justice, number, there];
+	fail ["ok this failed", justice];
 	return;
-#I GUESS LET is next... we can start with static values first.
+	yield;
+	break;
+
 endscript;

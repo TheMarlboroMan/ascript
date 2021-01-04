@@ -15,13 +15,13 @@ std::string script::type_to_str(
 		case token::types::fn_is_greater_than: return "fn_is_greater_than"; 
 		case token::types::fn_is_lesser_than: return "fn_is_lesser_than"; 
 		case token::types::fn_host_has: return "fn_host_has";
-		case token::types::fn_host_add: return "fn_host_add";
 		case token::types::fn_host_get: return "fn_host_get";
-		case token::types::fn_host_set: return "fn_host_set";
 		case token::types::fn_host_query: return "fn_host_query";
-		case token::types::fn_host_do: return "fn_host_do";
-		case token::types::fn_out: return "out";
-		case token::types::fn_fail: return "fail";
+		case token::types::pr_host_set: return "pr_host_set";
+		case token::types::pr_host_add: return "pr_host_add";
+		case token::types::pr_host_do: return "pr_host_do";
+		case token::types::pr_out: return "out";
+		case token::types::pr_fail: return "fail";
 		case token::types::kw_not: return "not";
 		case token::types::kw_if: return "if";
 		case token::types::kw_elseif: return "elseif";

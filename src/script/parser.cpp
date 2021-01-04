@@ -26,12 +26,10 @@ void parser::root_mode() {
 		script_mode(scriptname.str_val);
 	};
 
-/*
 	for(const auto& script : scripts) {
 
 		std::cout<<script.second<<std::endl;
 	}
-*/
 }
 
 void parser::script_mode(
@@ -57,23 +55,33 @@ void parser::script_mode(
 				expect(token::types::semicolon);
 				scripts.insert(std::make_pair(_scriptname, std::move(current_script)));
 				return;
-			case token::types::kw_return:{
-
+			case token::types::kw_return:
 				expect(token::types::semicolon);
-
 				current_script.contexts[0].instructions.emplace_back(
 					new instruction_return()
 				);
+			break;
+			case token::types::kw_yield:
+				expect(token::types::semicolon);
+				current_script.contexts[0].instructions.emplace_back(
+					new instruction_yield()
+				);
+			break;
+			case token::types::kw_break:
+				expect(token::types::semicolon);
+				current_script.contexts[0].instructions.emplace_back(
+					new instruction_break()
+				);
+			break;
+			case token::types::kw_let:
+				variable_declaration_mode(0);
+			break;
+			case token::types::pr_out:
+			case token::types::pr_fail:{
+				auto params=parameters_mode();
+				add_procedure(token.type, params, 0);
+			break;
 			}
-			break;
-			case token::types::fn_out:
-			case token::types::fn_fail:
-
-				function_mode(token.type, 0);
-			break;
-
-			//TODO: next, let.
-
 			default:
 				throw std::runtime_error(
 					std::string{"unexpected '"}
@@ -87,9 +95,7 @@ void parser::script_mode(
 	throw std::runtime_error("unexpected end of file, expected endscript;");
 }
 
-void parser::function_mode(
-	token::types _type,
-	int _context_index
+std::vector<variable> parser::parameters_mode(
 ) {
 
 	expect(token::types::open_bracket);
@@ -107,8 +113,7 @@ void parser::function_mode(
 		switch(token.type) {
 			case token::types::close_bracket:
 				expect(token::types::semicolon);
-					add_function(_type, parameters, _context_index);
-				return;
+				return parameters;
 			case token::types::val_string:
 				parameters.push_back({token.str_val});
 				if(peek().type==token::types::comma) {
@@ -127,6 +132,12 @@ void parser::function_mode(
 					extract();
 				}
 			break;
+			case token::types::identifier:
+				parameters.push_back({token.str_val, variable::types::symbol});
+				if(peek().type==token::types::comma) {
+					extract();
+				}
+			break;
 			default:
 				//TODO Throw custom error.
 				throw std::runtime_error(
@@ -139,20 +150,71 @@ void parser::function_mode(
 	}
 }
 
-void parser::add_function(
+void parser::variable_declaration_mode(
+	int _context_index
+) {
+	//"let" has been already consumed so... identifier + be + value + semicolon...
+	auto identifier=expect(token::types::identifier);
+	expect(token::types::kw_be);
+
+	auto value=extract();
+	switch(value.type) {
+		case token::types::val_string:
+			current_script.contexts[_context_index].instructions.emplace_back(
+				new instruction_declaration_static(identifier.str_val, {value.str_val})
+			);
+			expect(token::types::semicolon);
+			return;
+		case token::types::val_bool:
+			current_script.contexts[_context_index].instructions.emplace_back(
+				new instruction_declaration_static(identifier.str_val, {value.bool_val})
+			);
+			expect(token::types::semicolon);
+			return;
+		break;
+		case token::types::val_int:
+			current_script.contexts[_context_index].instructions.emplace_back(
+				new instruction_declaration_static(identifier.str_val, {value.int_val})
+			);
+			expect(token::types::semicolon);
+			return;
+		case token::types::fn_is_equal:{
+			auto params=parameters_mode();
+//			current_script.contexts[_context_index].instructions.emplace_back(
+	//			new instruction_declaration_dynamic(
+		//			identifier.str_val, 
+//TODO: create instruction_declaration_dynamic
+//TODO: it must have an identifier plus std::unique_ptr<instruction_function>
+//which will be created here.
+					//which should be the base for is_equal, etc.
+			//	);
+//			);
+//			expect(token::types::semicolon);
+			return;
+		}
+		default:
+			//TODO Throw custom error.
+			throw std::runtime_error(
+				std::string{"unexpected '"}
+					+type_to_str(value.type)
+					+"' in variable declaration on line "
+					+std::to_string(value.line_number)
+			);
+	}
+}
+
+void parser::add_procedure(
 	token::types _type, 
 	std::vector<variable>& _parameters,
 	int _context_index
 ) {
-
-
 	switch(_type) {
-		case token::types::fn_out:
+		case token::types::pr_out:
 			current_script.contexts[_context_index].instructions.emplace_back(
 				new instruction_out(_parameters)
 			);
 			return;
-		case token::types::fn_fail:
+		case token::types::pr_fail:
 			current_script.contexts[_context_index].instructions.emplace_back(
 				new instruction_fail(_parameters)
 			);

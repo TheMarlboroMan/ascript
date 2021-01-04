@@ -26,7 +26,7 @@ tokenizer::tokenizer() {
 	typemap["endloop"]=token::types::kw_endloop;
 	typemap["yield"]=token::types::kw_yield;
 	typemap["return"]=token::types::kw_return;
-	typemap["fail"]=token::types::fn_fail;
+	typemap["fail"]=token::types::pr_fail;
 	typemap["let"]=token::types::kw_let;
 	typemap["be"]=token::types::kw_be;
 	typemap["int"]=token::types::kw_integer;
@@ -34,12 +34,12 @@ tokenizer::tokenizer() {
 	typemap["bool"]=token::types::kw_bool;
 	typemap["as"]=token::types::kw_as;
 	typemap["host_has"]=token::types::fn_host_has;
-	typemap["host_add"]=token::types::fn_host_add;
+	typemap["host_add"]=token::types::pr_host_add;
 	typemap["host_get"]=token::types::fn_host_get;
-	typemap["host_set"]=token::types::fn_host_set;
+	typemap["host_set"]=token::types::pr_host_set;
 	typemap["host_query"]=token::types::fn_host_query;
-	typemap["host_do"]=token::types::fn_host_do;
-	typemap["out"]=token::types::fn_out;
+	typemap["host_do"]=token::types::pr_host_do;
+	typemap["out"]=token::types::pr_out;
 	typemap["beginscript"]=token::types::kw_beginscript;
 	typemap["endscript"]=token::types::kw_endscript;
 }
@@ -73,7 +73,12 @@ std::vector<script::token> tokenizer::from_string(
 		std::string strtoken;
 		while(true) {
 
+			if(ss.eof()) {
+				break;
+			}
+
 			ss>>strtoken;
+
 			std::vector<token> affix;
 
 			bool starts_string{false};
@@ -88,6 +93,7 @@ std::vector<script::token> tokenizer::from_string(
 					strtoken.pop_back();
 					result.push_back({token::types::val_string, strtoken, 0, false, line_number});
 					if(affix.size()) {
+
 						result.insert(std::end(result), std::rbegin(affix), std::rend(affix));
 					}
 
@@ -147,10 +153,6 @@ std::vector<script::token> tokenizer::from_string(
 			if(affix.size()) {
 				
 				result.insert(std::end(result), std::rbegin(affix), std::rend(affix));
-			}
-
-			if(ss.eof()) {
-				break;
 			}
 		}
 	}

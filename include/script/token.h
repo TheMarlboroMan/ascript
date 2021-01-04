@@ -12,29 +12,29 @@ struct token {
 		val_string,
 		val_bool,
 		val_int,
-		fn_is_equal,
+		fn_is_equal, 
 		fn_is_greater_than,
 		fn_is_lesser_than,
 		fn_host_has,
-		fn_host_add,
 		fn_host_get,
-		fn_host_set,
 		fn_host_query,
-		fn_host_do,
-		fn_out, //done
-		fn_fail, //done
+		pr_host_set,
+		pr_host_add,
+		pr_host_do,
+		pr_out, //done
+		pr_fail, //done
 		kw_not,
 		kw_if, 
 		kw_elseif,
 		kw_else,
 		kw_endif,
 		kw_loop,
-		kw_break,
+		kw_break, //done
 		kw_endloop,
-		kw_yield,
+		kw_yield, //done
 		kw_return, //done
-		kw_let,
-		kw_be,
+		kw_let, //done
+		kw_be, //done
 		kw_integer,
 		kw_string,
 		kw_bool,

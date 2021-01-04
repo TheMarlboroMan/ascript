@@ -18,8 +18,9 @@ class parser {
 
 	void                    root_mode();
 	void                    script_mode(const std::string&);
-	void                    function_mode(token::types, int);
-	void                    add_function(token::types, std::vector<variable>&, int);
+	std::vector<variable>   parameters_mode();
+	void                    variable_declaration_mode(int);
+	void                    add_procedure(token::types, std::vector<variable>&, int);
 	token                   expect(token::types);
 	token                   extract();
 	token                   peek();

@@ -23,12 +23,24 @@ variable::variable(
 }
 
 variable::variable(
-	const std::string _val
+	const std::string& _val
 ):
 	type{types::string},
 	bool_val{false},
 	int_val{0},
 	str_val{_val}
+{
+
+}
+
+variable::variable(
+	const std::string& _identifier,
+	types /*_unused*/
+):
+	type{types::symbol},
+	bool_val{false},
+	int_val{0},
+	str_val{_identifier}
 {
 
 }
@@ -48,6 +60,9 @@ std::ostream& script::operator<<(
 			return _stream;
 		case variable::types::string:
 			_stream<<"string:"<<_var.str_val;
+			return _stream;
+		case variable::types::symbol:
+			_stream<<"symbol:"<<_var.str_val;
 			return _stream;
 	}
 	
@@ -104,8 +119,32 @@ instruction_out::instruction_out(
 	std::vector<variable>& _params
 ):
 	parameters{_params}
+{}
+
+instruction_fail::instruction_fail(
+	std::vector<variable>& _params
+):
+	parameters{_params}
+{}
+
+instruction_is_equal::instruction_is_equal(
+	std::vector<variable>& _params
+):
+	parameters{_params}
+{}
+
+instruction_declaration_static::instruction_declaration_static(
+	const std::string& _identifier, 
+	const variable& _value
+):
+	identifier{_identifier},
+	value{_value}
 {
+
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//Format out methods...
 
 void instruction_out::format_out(
 	std::ostream& _stream
@@ -116,13 +155,6 @@ void instruction_out::format_out(
 		_stream<<var<<",";
 	}
 	_stream<<"]";
-}
-
-instruction_fail::instruction_fail(
-	std::vector<variable>& _params
-):
-	parameters{_params}
-{
 }
 
 void instruction_fail::format_out(
@@ -136,10 +168,44 @@ void instruction_fail::format_out(
 	_stream<<"]";
 }
 
+void instruction_is_equal::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"is_equal[";
+	for(const auto& var : parameters) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
 void instruction_return::format_out(
 	std::ostream& _stream
 ) const {
 
 	_stream<<"return";
 }
+
+void instruction_yield::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"yield";
+}
+
+void instruction_break::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"break";
+}
+
+void instruction_declaration_static::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"variable '"<<identifier<<"' as "<<value;
+}
+
+
 
