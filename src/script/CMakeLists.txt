@@ -1,0 +1,9 @@
+set(SOURCE
+	${SOURCE}
+	${CMAKE_CURRENT_SOURCE_DIR}/token.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/tokenizer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/parser_nodes.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/parser.cpp
+	PARENT_SCOPE
+)
+

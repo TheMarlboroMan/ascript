@@ -1,0 +1,79 @@
+#include "script/token.h"
+
+using namespace script;
+
+std::string script::type_to_str(
+	token::types _type
+) {
+
+	switch(_type) {
+		case token::types::identifier: return "identifier"; 
+		case token::types::val_string: return "string_value"; 
+		case token::types::val_bool: return "boolean_value";
+		case token::types::val_int: return "integer_value";
+		case token::types::fn_is_equal: return "fn_is_equal";
+		case token::types::fn_is_greater_than: return "fn_is_greater_than"; 
+		case token::types::fn_is_lesser_than: return "fn_is_lesser_than"; 
+		case token::types::fn_host_has: return "fn_host_has";
+		case token::types::fn_host_add: return "fn_host_add";
+		case token::types::fn_host_get: return "fn_host_get";
+		case token::types::fn_host_set: return "fn_host_set";
+		case token::types::fn_host_query: return "fn_host_query";
+		case token::types::fn_host_do: return "fn_host_do";
+		case token::types::fn_out: return "out";
+		case token::types::fn_fail: return "fail";
+		case token::types::kw_not: return "not";
+		case token::types::kw_if: return "if";
+		case token::types::kw_elseif: return "elseif";
+		case token::types::kw_else: return "else";
+		case token::types::kw_endif: return "endif";
+		case token::types::kw_loop: return "loop";
+		case token::types::kw_break: return "break";
+		case token::types::kw_endloop: return "endloop";
+		case token::types::kw_yield: return "yield"; 
+		case token::types::kw_return: return "return";
+		case token::types::kw_let: return "let";
+		case token::types::kw_be: return "be";
+		case token::types::kw_integer: return "kw_integer";
+		case token::types::kw_string: return "kw_string";
+		case token::types::kw_bool: return "kw_bool";
+		case token::types::kw_as: return "as";
+		case token::types::kw_beginscript: return "beginscript";
+		case token::types::kw_endscript: return "endscript";
+		case token::types::semicolon: return ";";
+		case token::types::comma: return ",";
+		case token::types::open_bracket: return "[";
+		case token::types::close_bracket: return "]";
+	}
+
+	return "";
+}
+
+std::ostream& script::operator<<(
+	std::ostream& _stream,
+	const token& _token
+) {
+
+	_stream<<type_to_str(_token.type);
+
+	if(_token.type==token::types::val_string) {
+
+		_stream<<" (\""<<_token.str_val<<"\")";
+	}
+	else if(_token.type==token::types::val_bool) {
+
+		_stream<<" (\""<<(_token.bool_val ? "true" : "false")<<"\")";
+	}
+	else if(_token.type==token::types::val_int) {
+
+		_stream<<" (\""<<_token.int_val<<"\")";
+	}
+	else if(_token.type==token::types::identifier) {
+
+		_stream<<" \""<<_token.str_val<<"\"";
+	}
+
+	
+	return _stream;
+}
+
