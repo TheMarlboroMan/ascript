@@ -12,9 +12,9 @@ struct token {
 		val_string,
 		val_bool,
 		val_int,
-		fn_is_equal, 
-		fn_is_greater_than,
-		fn_is_lesser_than,
+		fn_is_equal, //done
+		fn_is_greater_than, //done
+		fn_is_lesser_than, //done
 		fn_host_has,
 		fn_host_get,
 		fn_host_query,

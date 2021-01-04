@@ -39,7 +39,6 @@ an identifier that should exist in the current symbol table.
 
 if VERB [params];
 	is_equal
-	is_not_equal
 	is_greater_than
 	is_lesser_than
 elseif VERB [params];

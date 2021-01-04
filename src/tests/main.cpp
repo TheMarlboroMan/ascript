@@ -18,9 +18,9 @@ int main(
 		script::tokenizer tk;
 		const auto tokens=tk.from_file(_argv[1]);
 
-//		for(const auto& r : tokens) {
-//		std::cout<<r<<std::endl;
-//		}
+		for(const auto& r : tokens) {
+			std::cout<<r<<std::endl;
+		}
 
 		script::parser p;
 		p.parse(tokens);
