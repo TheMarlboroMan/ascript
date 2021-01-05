@@ -9,6 +9,11 @@
 
 namespace ascript {
 
+struct parser_error:std::runtime_error {
+
+	                        parser_error(const std::string& _msg):runtime_error(_msg){}
+};
+
 class parser {
 
 	public:

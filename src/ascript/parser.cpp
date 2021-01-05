@@ -54,7 +54,11 @@ void parser::script_mode(
 		std::back_inserter(current_script.parameter_names),
 		[](const variable& _var) {
 
-			//TODO: make sure these are declared as string parameters!!!
+			if(_var.type!=variable::types::symbol) {
+
+				throw parser_error("parameters for scripts must be expressed as identifiers");
+			}
+
 			return _var.str_val;
 		}
 	);
@@ -131,7 +135,7 @@ void parser::instruction_mode(
 				loop_mode(_context_index);
 			break;
 			default:
-				throw std::runtime_error(
+				throw parser_error(
 					std::string{"unexpected '"}
 					+type_to_str(token.type)
 					+"' when parsing instructions on line "
@@ -140,7 +144,7 @@ void parser::instruction_mode(
 		}
 	}
 
-	throw std::runtime_error(_eof_err_msg);
+	throw parser_error(_eof_err_msg);
 }
 
 void parser::loop_mode(
@@ -173,27 +177,36 @@ void parser::conditional_branch_mode(
 
 	//if [not] fn [arg, arg, arg];
 
-	bool negated=false;
-	if(peek().type==token::types::kw_not) {
+	auto add=[this](instruction_conditional_branch& _ifbr) -> int {
 
-		negated=true;
-		extract();
-	}
+		bool negated=false;
+		if(peek().type==token::types::kw_not) {
 
-	auto function=extract();
-	auto fnptr=build_function(function.type);
-	fnptr->arguments=arguments_mode();
-	expect(token::types::semicolon, "function for conditional branch declaration start must end with semicolon");
+			negated=true;
+			extract();
+		}
 
+		auto function=extract();
+		auto fnptr=build_function(function.type);
+		fnptr->arguments=arguments_mode();
+		expect(token::types::semicolon, "function for conditional branch declaration must end with semicolon");
+
+		//Add a new context for the branch...
+		add_context(context::types::linear, current_script);
+		int next_context_index=current_script.contexts.size()-1;
+		_ifbr.branches.push_back({std::move(fnptr), next_context_index, negated});
+		return next_context_index;
+	};
+
+	//Start the if instruction...
 	instruction_conditional_branch * ifbr=new instruction_conditional_branch();
 
-	//Add a new context for the first branch...
-	add_context(context::types::linear, current_script);
-	int next_context_index=current_script.contexts.size()-1;
-	ifbr->branches.push_back({std::move(fnptr), next_context_index, negated});
+	//Add a first context...
+	int next_context_index=add(*ifbr);
 
 	//Now we run the linear mode with this next context... We store the last 
 	//breaking token so we can know if we need to look for more branches.
+
 	token::types last_type=token::types::kw_if;
 
 	while(true) {
@@ -217,21 +230,7 @@ void parser::conditional_branch_mode(
 
 		if(last_type==token::types::kw_elseif) {
 
-			bool negated=false;
-			if(peek().type==token::types::kw_not) {
-
-				negated=true;
-				extract();
-			}
-
-			auto function=extract();
-			auto fnptr=build_function(function.type);
-			fnptr->arguments=arguments_mode();
-			expect(token::types::semicolon, "function for subsequent conditional branch declarations must end with semicolon");
-
-			add_context(context::types::linear, current_script);
-			next_context_index=current_script.contexts.size()-1;
-			ifbr->branches.push_back({std::move(fnptr), next_context_index, negated});
+			next_context_index=add(*ifbr);
 		}
 		else if(last_type==token::types::kw_else) {
 
@@ -265,8 +264,7 @@ std::vector<variable> parser::arguments_mode(
 
 		if(!tokens.size()) {
 
-			//TODO Throw custom error.
-			throw std::runtime_error("unexpected end of file, expected function parameters");
+			throw parser_error("unexpected end of file, expected function parameters");
 		}
 
 		auto token=extract();
@@ -299,8 +297,7 @@ std::vector<variable> parser::arguments_mode(
 				}
 			break;
 			default:
-				//TODO Throw custom error.
-				throw std::runtime_error(
+				throw parser_error(
 					std::string{"unexpected '"}
 						+type_to_str(token.type)
 						+"' in argument list on line "
@@ -360,8 +357,7 @@ void parser::variable_declaration_mode(
 			return;
 		}
 		default:
-			//TODO Throw custom error.
-			throw std::runtime_error(
+			throw parser_error(
 				std::string{"unexpected '"}
 					+type_to_str(value.type)
 					+"' in variable declaration on line "
@@ -396,7 +392,7 @@ std::unique_ptr<instruction_function> parser::build_function(
 			return fnptr;
 
 		default: 
-			throw std::runtime_error(
+			throw parser_error(
 				std::string{"unkwnown function type '"}
 				+type_to_str(_type)
 				+"', this must mean the function is not added to the list of buildable functions"
@@ -430,7 +426,7 @@ void parser::add_procedure(
 			prptr=new instruction_host_do();
 		break;
 		default:
-			throw std::runtime_error(
+			throw parser_error(
 				std::string{"unknown procedure type '"}
 				+type_to_str(_type)
 				+"'"
@@ -450,8 +446,7 @@ token parser::expect(
 ) {
 
 	if(!tokens.size()) {
-		//TODO: other type
-		throw std::runtime_error(
+		throw parser_error(
 			std::string{"expect called with no tokens left ("}
 			+_err_msg
 			+")"
@@ -462,8 +457,7 @@ token parser::expect(
 	tokens.erase(std::begin(tokens));
 	if(token.type!=_type) {
 
-		//TODO: throw custom exception.
-		throw std::runtime_error(
+		throw parser_error(
 			std::string{"expected '"}
 			+type_to_str(_type)
 			+"' got '"
@@ -481,8 +475,7 @@ token parser::extract() {
 
 	if(!tokens.size()) {
 
-		//TODO Throw custom exception
-		throw std::runtime_error("extract called with no tokens left");
+		throw parser_error("extract called with no tokens left");
 	}
 
 	auto token=tokens.front();
@@ -494,8 +487,7 @@ token parser::peek() {
 
 	if(!tokens.size()) {
 
-		//TODO Throw custom exception
-		throw std::runtime_error("peek called with no tokens left");
+		throw parser_error("peek called with no tokens left");
 	}
 
 	auto token=tokens.front();
