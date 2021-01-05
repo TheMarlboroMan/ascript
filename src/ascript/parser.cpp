@@ -338,6 +338,10 @@ void parser::variable_declaration_mode(
 		case token::types::fn_is_equal:
 		case token::types::fn_is_lesser_than:
 		case token::types::fn_is_greater_than: 
+		case token::types::fn_is_int:
+		case token::types::fn_is_bool:
+		case token::types::fn_is_double:
+		case token::types::fn_is_string:
 		case token::types::fn_host_has:
 		case token::types::fn_host_get:
 		case token::types::fn_host_query:
@@ -380,6 +384,18 @@ std::unique_ptr<instruction_function> parser::build_function(
 			return fnptr;
 		case token::types::fn_is_greater_than:
 			fnptr.reset(new instruction_is_greater_than());
+			return fnptr;
+		case token::types::fn_is_int:
+			fnptr.reset(new instruction_is_int());
+			return fnptr;
+		case token::types::fn_is_bool:
+			fnptr.reset(new instruction_is_bool());
+			return fnptr;
+		case token::types::fn_is_double:
+			fnptr.reset(new instruction_is_double());
+			return fnptr;
+		case token::types::fn_is_string:
+			fnptr.reset(new instruction_is_string());
 			return fnptr;
 		case token::types::fn_host_has:
 			fnptr.reset(new instruction_host_has()); 

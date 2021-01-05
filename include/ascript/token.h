@@ -15,6 +15,10 @@ struct token {
 		fn_is_equal, //done
 		fn_is_greater_than, //done
 		fn_is_lesser_than, //done
+		fn_is_int, //done
+		fn_is_bool,//done
+		fn_is_double, //done
+		fn_is_string, //done
 		fn_host_has, //done
 		fn_host_get, //done
 		fn_host_query, //done

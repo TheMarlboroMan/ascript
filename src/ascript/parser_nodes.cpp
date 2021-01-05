@@ -7,20 +7,27 @@ variable::variable(
 ):
 	type{types::boolean},
 	bool_val{_val},
-	int_val{0}
-{
-
-}
+	int_val{0},
+	double_val{0.}
+{}
 
 variable::variable(
 	int _val
 ):
 	type{types::integer},
 	bool_val{false},
-	int_val{_val}
- {
+	int_val{_val},
+	double_val{0.}
+{}
 
-}
+variable::variable(
+	double _val
+):
+	type{types::integer},
+	bool_val{false},
+	int_val{0},
+	double_val{_val}
+{}
 
 variable::variable(
 	const std::string& _val
@@ -28,10 +35,9 @@ variable::variable(
 	type{types::string},
 	bool_val{false},
 	int_val{0},
+	double_val{0.},
 	str_val{_val}
-{
-
-}
+{}
 
 variable::variable(
 	const std::string& _identifier,
@@ -40,10 +46,9 @@ variable::variable(
 	type{types::symbol},
 	bool_val{false},
 	int_val{0},
+	double_val{0.},
 	str_val{_identifier}
-{
-
-}
+{}
 
 instruction_declaration_static::instruction_declaration_static(
 	const std::string& _identifier, 
@@ -158,11 +163,56 @@ void instruction_is_lesser_than::format_out(
 	_stream<<"]";
 }
 
+void instruction_is_int::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"is_int[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_is_bool::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"is_bool[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_is_double::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"is_double[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_is_string::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"is_string[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
 void instruction_host_has::format_out(
 	std::ostream& _stream
 ) const {
 
-	_stream<<"host_has[";
+	_stream<<
+"host_has[";
 	for(const auto& var : arguments) {
 		_stream<<var<<",";
 	}
@@ -261,6 +311,9 @@ std::ostream& ascript::operator<<(
 			return _stream;
 		case variable::types::string:
 			_stream<<"string:"<<_var.str_val;
+			return _stream;
+		case variable::types::decimal:
+			_stream<<"double:"<<_var.double_val;
 			return _stream;
 		case variable::types::symbol:
 			_stream<<"symbol:"<<_var.str_val;

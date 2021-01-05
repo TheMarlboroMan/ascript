@@ -9,14 +9,16 @@ namespace ascript {
 
 struct variable {
 
-	enum class              types{boolean, integer, string, symbol} type{types::integer};
+	enum class              types{boolean, integer, string, decimal, symbol} type{types::integer};
 
 	                        variable(bool);
 	                        variable(int);
+	                        variable(double);
 	                        variable(const std::string&);
 	                        variable(const std::string&, types); //hacky symbol constructor.
 	bool                    bool_val{false};
 	int                     int_val{0};
+	double                  double_val{0.};
 	std::string             str_val;
 };
 
@@ -90,6 +92,26 @@ struct instruction_is_greater_than:instruction_function {
 };
 
 struct instruction_host_has:instruction_function {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_is_int:instruction_function {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_is_bool:instruction_function {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_is_double:instruction_function {
+
+	void                    format_out(std::ostream&) const;
+};
+
+struct instruction_is_string:instruction_function {
 
 	void                    format_out(std::ostream&) const;
 };
