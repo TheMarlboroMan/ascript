@@ -1,5 +1,6 @@
 #script
 
-##IDEAS
+#TODO:
 
-- parameters to scripts.
+interpreters is next.
+i guess we'll need the host interface.

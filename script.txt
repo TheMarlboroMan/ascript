@@ -1,18 +1,18 @@
-beginscript raise_and_lower_platform
+beginscript raise_and_lower_platform;
 
 	#do not run if n times have passed, whatever.
-	let check be bool as host_has ["playtime fuck off"];
+	let check be host_has ["playtime"];
 	if is_equal [check, false];
 		fail ["playtime should be defined"];
-	endif
+	endif;
 
-	let time be int as host_get [int, "playtime"];
-	if is_greater_than [time, 3600] then;
+	let time be host_get ["playtime"];
+	if is_greater_than [time, 3600];
 		return;
 	endif;
 
 	#do not run if the button is active
-	let platform_active be bool as host_query [bool, "is_active", "platbutton"]
+	let platform_active be host_query ["is_active", "platbutton"];
 	if is_equal [ platform_active, true ];
 		return;
 	endif;
@@ -22,11 +22,10 @@ beginscript raise_and_lower_platform
 	host_do ["disable", "platbutton"];
 
 	#raise platform wait for it to end.
-	#TODO: should this be time or absolute space? if it is time, 
 	#we can have sync problems.
 	host_do ["motion", "platform", 0, 24, 0, 48];
 	loop;
-		let platform_motionless be bool as host_query [bool, "is_motionless", "platform"];
+		let platform_motionless be host_query ["is_motionless", "platform"];
 		if is_equal [platform_motionless, true];
 			break;
 		endif;
@@ -36,7 +35,7 @@ beginscript raise_and_lower_platform
 	#lower platform, wait for it to end
 	host_do ["motion", "platform", 0, -24, 0, -48];
 	loop;
-		let platform_motionless be bool as host_query [bool, "is_motionless", "platform"];
+		let platform_motionless be host_query ["is_motionless", "platform"];
 		if is_equal [platform_motionless, true];
 			break;
 		endif;
@@ -46,5 +45,5 @@ beginscript raise_and_lower_platform
 	#enable button
 	host_do ["enable", "platbutton"];
 
-endscript
+endscript;
 
