@@ -18,15 +18,15 @@ class parser {
 
 	public:
 
-	std::vector<script>     parse(const std::vector<token>&);
+	std::vector<function>     parse(const std::vector<token>&);
 
 	private:
 
-	//!Root mode, little more than declaring scripts
+	//!Root mode, little more than declaring functions
 	void                    root_mode();
 
-	//!Starts a script.
-	void                    script_mode(const std::string&, const std::vector<variable>&, int);
+	//!Starts a function.
+	void                    function_mode(const std::string&, const std::vector<variable>&, int);
 
 	//!Regular operation parsing mode.
 	void                    instruction_mode(std::function<bool(const token&)>, int, const std::string&);
@@ -49,8 +49,8 @@ class parser {
 	//!Reading a procedure (out, fail...)
 	void                    add_procedure(token::types, std::vector<variable>&, int);
 
-	//!Adds a new context.to the given script.
-	void                    add_context(context::types, script&);
+	//!Adds a new block.to the given function.
+	void                    add_block(block::types, function&);
 
 	//!Throws if the next token is not of the given type. Returns next token.
 	token                   expect(token::types, const std::string&);
@@ -62,8 +62,8 @@ class parser {
 	token                   peek();
 
 	std::vector<token>      tokens;
-	std::vector<script>     scripts;
-	script                  current_script;
+	std::vector<function>   functions;
+	function                current_function;
 };
 
 }

@@ -1,4 +1,4 @@
-beginscript raise_and_lower_platform;
+beginfunction raise_and_lower_platform;
 
 	#do not run if n times have passed, whatever.
 	let check be host_has ["playtime"];
@@ -45,5 +45,5 @@ beginscript raise_and_lower_platform;
 	#enable button
 	host_do ["enable", "platbutton"];
 
-endscript;
+endfunction;
 

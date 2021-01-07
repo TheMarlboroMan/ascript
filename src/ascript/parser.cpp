@@ -7,21 +7,21 @@
 
 using namespace ascript;
 
-std::vector<script> parser::parse(
+std::vector<function> parser::parse(
 	const std::vector<token>& _tokens
 ) {
 
 	tokens={_tokens};
 	root_mode();
-	return std::move(scripts);
+	return std::move(functions);
 }
 
 void parser::root_mode() {
 
 	while(tokens.size()) {
 
-		expect(token::types::kw_beginscript, "only beginscript is allowed in root nodes");
-		auto scriptname=expect(token::types::identifier, "beginscript must be followed by an identifier");
+		expect(token::types::kw_beginfunction, "only beginfunction is allowed in root nodes");
+		auto functionname=expect(token::types::identifier, "beginfunction must be followed by an identifier");
 
 		std::vector<variable> params;
 
@@ -32,58 +32,58 @@ void parser::root_mode() {
 			params=arguments_mode();
 		}
 
-		expect(token::types::semicolon, "script declaration must end with a semicolon");
+		expect(token::types::semicolon, "function declaration must end with a semicolon");
 
-		//This mode takes care of the final semicolon after endscript.
-		script_mode(scriptname.str_val, params, 0);
+		//This mode takes care of the final semicolon after endfunction.
+		function_mode(functionname.str_val, params, 0);
 	};
 }
 
-void parser::script_mode(
-	const std::string& _scriptname,
+void parser::function_mode(
+	const std::string& _functionname,
 	const std::vector<variable>& _parameters,
-	int _context_index
+	int _block_index
 ) {
 
-	current_script.name=_scriptname;
+	current_function.name=_functionname;
 
-	current_script.parameter_names.clear();
+	current_function.parameter_names.clear();
 	std::transform(
 		std::begin(_parameters),
 		std::end(_parameters),
-		std::back_inserter(current_script.parameter_names),
+		std::back_inserter(current_function.parameter_names),
 		[](const variable& _var) {
 
 			if(_var.type!=variable::types::symbol) {
 
-				throw parser_error("parameters for scripts must be expressed as identifiers");
+				throw parser_error("parameters for functions must be expressed as identifiers");
 			}
 
 			return _var.str_val;
 		}
 	);
 
-	//Clear the current script...
-	current_script.contexts.clear();
-	add_context(context::types::linear, current_script);
+	//Clear the current function...
+	current_function.blocks.clear();
+	add_block(block::types::linear, current_function);
 
 	instruction_mode(
 		[](const token& _tok) {
 
-			return _tok.type==token::types::kw_endscript;
+			return _tok.type==token::types::kw_endfunction;
 		},
-		_context_index,
-		"unexpected end of file, expected endscript;"
+		_block_index,
+		"unexpected end of file, expected endfunction;"
 	);
 
 	//Cleanup last semicolon, of course.
-	expect(token::types::semicolon, "endscript must be followed by a semicolon");
-	scripts.emplace_back(std::move(current_script));
+	expect(token::types::semicolon, "endfunction must be followed by a semicolon");
+	functions.emplace_back(std::move(current_function));
 }
 
 void parser::instruction_mode(
 	std::function<bool(const token&)> _fn_end,
-	int _context_index,
+	int _block_index,
 	const std::string& _eof_err_msg
 ) {
 
@@ -99,24 +99,24 @@ void parser::instruction_mode(
 		switch(token.type) {
 			case token::types::kw_return:
 				expect(token::types::semicolon, "return must be followed by a semicolon");
-				current_script.contexts[_context_index].instructions.emplace_back(
+				current_function.blocks[_block_index].instructions.emplace_back(
 					new instruction_return()
 				);
 			break;
 			case token::types::kw_yield:
 				expect(token::types::semicolon, "yield must be followed by a semicolon");
-				current_script.contexts[_context_index].instructions.emplace_back(
+				current_function.blocks[_block_index].instructions.emplace_back(
 					new instruction_yield()
 				);
 			break;
 			case token::types::kw_break:
 				expect(token::types::semicolon, "break must be followed by a semicolon");
-				current_script.contexts[_context_index].instructions.emplace_back(
+				current_function.blocks[_block_index].instructions.emplace_back(
 					new instruction_break()
 				);
 			break;
 			case token::types::kw_let:
-				variable_declaration_mode(_context_index);
+				variable_declaration_mode(_block_index);
 			break;
 			case token::types::pr_out:
 			case token::types::pr_fail:
@@ -124,15 +124,15 @@ void parser::instruction_mode(
 			case token::types::pr_host_add:
 			case token::types::pr_host_do: {
 				auto args=arguments_mode();
-				add_procedure(token.type, args, _context_index);
+				add_procedure(token.type, args, _block_index);
 				expect(token::types::semicolon, "procedure call arguments must be followed by a semicolon");
 			break;
 			}
 			case token::types::kw_if:
-				conditional_branch_mode(_context_index);
+				conditional_branch_mode(_block_index);
 			break;
 			case token::types::kw_loop:
-				loop_mode(_context_index);
+				loop_mode(_block_index);
 			break;
 			default:
 				throw parser_error(
@@ -148,30 +148,30 @@ void parser::instruction_mode(
 }
 
 void parser::loop_mode(
-	int _context_index
+	int _block_index
 ) {
 	expect(token::types::semicolon, "loop must be followed by a semicolon");
 
-	add_context(context::types::loop, current_script);
-	int next_context_index=current_script.contexts.size()-1;
+	add_block(block::types::loop, current_function);
+	int next_block_index=current_function.blocks.size()-1;
 
 	instruction_mode(
 		[](const token& _tok) -> bool {
 			return _tok.type==token::types::kw_endloop;
 		},
-		next_context_index,
+		next_block_index,
 		"unexpected end of file, expected endloop"
 	);
 
 	expect(token::types::semicolon, "endloop must be followed by a semicolon");
 
-	current_script.contexts[_context_index].instructions.emplace_back(
-		new instruction_loop(next_context_index)
+	current_function.blocks[_block_index].instructions.emplace_back(
+		new instruction_loop(next_block_index)
 	);
 }
 
 void parser::conditional_branch_mode(
-	int _context_index
+	int _block_index
 ) {
 	//TODO: this needs a refactor... 
 
@@ -191,20 +191,20 @@ void parser::conditional_branch_mode(
 		fnptr->arguments=arguments_mode();
 		expect(token::types::semicolon, "function for conditional branch declaration must end with semicolon");
 
-		//Add a new context for the branch...
-		add_context(context::types::linear, current_script);
-		int next_context_index=current_script.contexts.size()-1;
-		_ifbr.branches.push_back({std::move(fnptr), next_context_index, negated});
-		return next_context_index;
+		//Add a new block for the branch...
+		add_block(block::types::linear, current_function);
+		int next_block_index=current_function.blocks.size()-1;
+		_ifbr.branches.push_back({std::move(fnptr), next_block_index, negated});
+		return next_block_index;
 	};
 
 	//Start the if instruction...
 	instruction_conditional_branch * ifbr=new instruction_conditional_branch();
 
-	//Add a first context...
-	int next_context_index=add(*ifbr);
+	//Add a first block...
+	int next_block_index=add(*ifbr);
 
-	//Now we run the linear mode with this next context... We store the last 
+	//Now we run the linear mode with this next block... We store the last 
 	//breaking token so we can know if we need to look for more branches.
 
 	token::types last_type=token::types::kw_if;
@@ -224,19 +224,19 @@ void parser::conditional_branch_mode(
 			
 				return false;
 			},
-			next_context_index,
+			next_block_index,
 			"unexpected end of file, expected else, elseif or endif"
 		);
 
 		if(last_type==token::types::kw_elseif) {
 
-			next_context_index=add(*ifbr);
+			next_block_index=add(*ifbr);
 		}
 		else if(last_type==token::types::kw_else) {
 
-			add_context(context::types::linear, current_script);
-			next_context_index=current_script.contexts.size()-1;
-			ifbr->branches.push_back({nullptr, next_context_index, false});
+			add_block(block::types::linear, current_function);
+			next_block_index=current_function.blocks.size()-1;
+			ifbr->branches.push_back({nullptr, next_block_index, false});
 			expect(token::types::semicolon, "else must end with a semicolon");
 		}
 		else if(last_type==token::types::kw_endif) {
@@ -247,8 +247,8 @@ void parser::conditional_branch_mode(
 	}
 
 	//Once all branches are evaluated, we put the if instruction in the original
-	//context.
-	current_script.contexts[_context_index].instructions.emplace_back(
+	//block.
+	current_function.blocks[_block_index].instructions.emplace_back(
 		ifbr
 	);
 }
@@ -308,7 +308,7 @@ std::vector<variable> parser::arguments_mode(
 }
 
 void parser::variable_declaration_mode(
-	int _context_index
+	int _block_index
 ) {
 	//"let" has been already consumed so... identifier + be + value + semicolon...
 	auto identifier=expect(token::types::identifier, "let must be followed by an identifier");
@@ -317,20 +317,20 @@ void parser::variable_declaration_mode(
 	auto value=extract();
 	switch(value.type) {
 		case token::types::val_string:
-			current_script.contexts[_context_index].instructions.emplace_back(
+			current_function.blocks[_block_index].instructions.emplace_back(
 				new instruction_declaration_static(identifier.str_val, {value.str_val})
 			);
 			expect(token::types::semicolon, "variable declaration must be finished with a semicolon");
 			return;
 		case token::types::val_bool:
-			current_script.contexts[_context_index].instructions.emplace_back(
+			current_function.blocks[_block_index].instructions.emplace_back(
 				new instruction_declaration_static(identifier.str_val, {value.bool_val})
 			);
 			expect(token::types::semicolon, "variable declaration must be finished with a semicolon");
 			return;
 		break;
 		case token::types::val_int:
-			current_script.contexts[_context_index].instructions.emplace_back(
+			current_function.blocks[_block_index].instructions.emplace_back(
 				new instruction_declaration_static(identifier.str_val, {value.int_val})
 			);
 			expect(token::types::semicolon, "variable declaration must be finished with a semicolon");
@@ -350,7 +350,7 @@ void parser::variable_declaration_mode(
 			auto fnptr=build_function(value.type);
 			fnptr->arguments=arguments_mode();
 
-			current_script.contexts[_context_index].instructions.emplace_back(
+			current_function.blocks[_block_index].instructions.emplace_back(
 				new instruction_declaration_dynamic(
 					identifier.str_val, 
 					fnptr
@@ -421,7 +421,7 @@ std::unique_ptr<instruction_function> parser::build_function(
 void parser::add_procedure(
 	token::types _type, 
 	std::vector<variable>& _arguments,
-	int _context_index
+	int _block_index
 ) {
 	instruction_procedure * prptr{nullptr};
 
@@ -451,7 +451,7 @@ void parser::add_procedure(
 
 	prptr->arguments=_arguments;
 
-	current_script.contexts[_context_index].instructions.emplace_back(
+	current_function.blocks[_block_index].instructions.emplace_back(
 		prptr
 	);
 }
@@ -511,12 +511,12 @@ token parser::peek() {
 }
 
 
-void parser::add_context(
-	context::types _type, 
-	script& _script
+void parser::add_block(
+	block::types _type, 
+	function& _function
 ) {
 
-	_script.contexts.push_back(
+	_function.blocks.push_back(
 		{
 			_type,
 			std::vector<std::unique_ptr<instruction>>{}

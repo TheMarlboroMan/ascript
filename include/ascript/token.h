@@ -43,8 +43,8 @@ struct token {
 		kw_string,
 		kw_bool,
 		kw_as,
-		kw_beginscript, //done
-		kw_endscript, //done
+		kw_beginfunction, //done
+		kw_endfunction, //done
 		semicolon,
 		comma,
 		open_bracket,

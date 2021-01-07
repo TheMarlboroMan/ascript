@@ -1,0 +1,14 @@
+Here's where I lay out ideas and shit...
+
+So, I have a "script" wich is a list of contexts... I could write something
+that runs it provided that...
+
+	- It has a symbol table for all the shit.
+	- later i can add parameters as part of the symbol table.
+
+class interpreter {
+
+	public:
+	void            run(const script&, const std::vector<variable>& parameters);
+	
+};

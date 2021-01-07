@@ -40,8 +40,8 @@ tokenizer::tokenizer() {
 	typemap["host_query"]=token::types::fn_host_query;
 	typemap["host_do"]=token::types::pr_host_do;
 	typemap["out"]=token::types::pr_out;
-	typemap["beginscript"]=token::types::kw_beginscript;
-	typemap["endscript"]=token::types::kw_endscript;
+	typemap["beginfunction"]=token::types::kw_beginfunction;
+	typemap["endfunction"]=token::types::kw_endfunction;
 }
 
 std::vector<ascript::token> tokenizer::from_file(

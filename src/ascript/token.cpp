@@ -42,8 +42,8 @@ std::string ascript::type_to_str(
 		case token::types::kw_string: return "kw_string";
 		case token::types::kw_bool: return "kw_bool";
 		case token::types::kw_as: return "as";
-		case token::types::kw_beginscript: return "beginscript";
-		case token::types::kw_endscript: return "endscript";
+		case token::types::kw_beginfunction: return "beginfunction";
+		case token::types::kw_endfunction: return "endfunction";
 		case token::types::semicolon: return ";";
 		case token::types::comma: return ",";
 		case token::types::open_bracket: return "[";

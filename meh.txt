@@ -1,10 +1,22 @@
-beginscript parametrised_script [parama, paramb];
+beginfunction parametrised_function [parama, paramb];
 
 	let same be is_equal [parama, paramb];
 
-endscript;
+	let one be 1;
+	let two be 2;
 
-beginscript unparametrised_script;
+	let samenumber be is_equal [one, two];
+	if is_equal [samenumber, true];
+
+		out ["lol"];
+		return;
+	endif;
+	
+	out ["lel"];
+
+endfunction;
+
+beginfunction unparametrised_function;
 
 	let justice be true;
 	let number be 666;
@@ -47,5 +59,5 @@ beginscript unparametrised_script;
 
 	let meh be host_query ["tralala"];
 
-endscript;
+endfunction;
 
