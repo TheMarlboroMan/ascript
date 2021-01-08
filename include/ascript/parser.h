@@ -1,18 +1,14 @@
 #pragma once
 
-#include "parser_nodes.h"
+#include "instructions.h"
 #include "token.h"
+#include "error.h"
 
 #include <vector>
 #include <map>
 #include <functional>
 
 namespace ascript {
-
-struct parser_error:std::runtime_error {
-
-	                        parser_error(const std::string& _msg):runtime_error(_msg){}
-};
 
 class parser {
 
@@ -26,7 +22,7 @@ class parser {
 	void                    root_mode();
 
 	//!Starts a function.
-	void                    function_mode(const std::string&, const std::vector<variable>&, int);
+	void                    function_mode(const token&, const std::vector<variable>&, int);
 
 	//!Regular operation parsing mode.
 	void                    instruction_mode(std::function<bool(const token&)>, int, const std::string&);
@@ -37,20 +33,29 @@ class parser {
 	//!Reading a variable declaration.
 	void                    variable_declaration_mode(int);
 
+	//!Reading variable assignment.
+	void                    variable_assignment_mode(int);
+
 	//!Builds a function instruction.
-	std::unique_ptr<instruction_function> build_function(token::types);
+	std::unique_ptr<instruction_function> build_function(const token&);
 
 	//!Reading if branches...
-	void                    conditional_branch_mode(int);
+	void                    conditional_branch_mode(int, int);
 
 	//!Reading loops...
-	void                    loop_mode(int);
+	void                    loop_mode(int, int);
 
 	//!Reading a procedure (out, fail...)
-	void                    add_procedure(token::types, std::vector<variable>&, int);
+	void                    add_procedure(const token&, std::vector<variable>&, int);
+
+	//!Will throw if the count of arguments does not match the expected value.
+	void                    check_argcount(std::size_t, const std::vector<variable>&, const token&);
 
 	//!Adds a new block.to the given function.
 	void                    add_block(block::types, function&);
+
+	//!Creates a variable from a value token.
+	variable                build_variable(const token&);
 
 	//!Throws if the next token is not of the given type. Returns next token.
 	token                   expect(token::types, const std::string&);

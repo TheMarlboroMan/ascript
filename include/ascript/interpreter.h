@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser_nodes.h"
+#include "instructions.h"
 #include "run_context.h"
 
 #include <vector>
@@ -27,10 +27,13 @@ class interpreter {
 	private:
 
 	void                interpret();
+	void                push_stack(int);
+	void                pop_stack(bool, int);
 
 	const function *    current_function{nullptr};
 	std::vector<stack>  stacks;
 	stack *             current_stack{nullptr};
+	bool                break_signal{false};
 };
 
 }

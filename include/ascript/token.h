@@ -12,9 +12,12 @@ struct token {
 		val_string,
 		val_bool,
 		val_int,
+		val_double,
 		fn_is_equal, //done
 		fn_is_greater_than, //done
 		fn_is_lesser_than, //done
+		fn_add,
+		fn_substract,
 		fn_is_int, //done
 		fn_is_bool,//done
 		fn_is_double, //done
@@ -39,6 +42,8 @@ struct token {
 		kw_return, //done
 		kw_let, //done
 		kw_be, //done
+		kw_set, //done
+		kw_to, //done
 		kw_integer,
 		kw_string,
 		kw_bool,
@@ -54,6 +59,7 @@ struct token {
 	types       type;
 	std::string str_val;
 	int         int_val{0};
+	double      double_val{0.};
 	bool        bool_val{false};
 	int         line_number{0};
 };

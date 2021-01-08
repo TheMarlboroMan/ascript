@@ -1,4 +1,5 @@
 #include "ascript/parser.h"
+#include "ascript/error.h"
 
 #include <stdexcept>
 #include <algorithm>
@@ -35,28 +36,28 @@ void parser::root_mode() {
 		expect(token::types::semicolon, "function declaration must end with a semicolon");
 
 		//This mode takes care of the final semicolon after endfunction.
-		function_mode(functionname.str_val, params, 0);
+		function_mode(functionname, params, 0);
 	};
 }
 
 void parser::function_mode(
-	const std::string& _functionname,
+	const token& _function_tok,
 	const std::vector<variable>& _parameters,
 	int _block_index
 ) {
 
-	current_function.name=_functionname;
+	current_function.name=_function_tok.str_val;
 
 	current_function.parameter_names.clear();
 	std::transform(
 		std::begin(_parameters),
 		std::end(_parameters),
 		std::back_inserter(current_function.parameter_names),
-		[](const variable& _var) {
+		[&_function_tok](const variable& _var) {
 
 			if(_var.type!=variable::types::symbol) {
 
-				throw parser_error("parameters for functions must be expressed as identifiers");
+				error_builder::get()<<"parameters for functions must be expressed as identifiers"<<throw_err{_function_tok.line_number, throw_err::types::parser};
 			}
 
 			return _var.str_val;
@@ -100,23 +101,26 @@ void parser::instruction_mode(
 			case token::types::kw_return:
 				expect(token::types::semicolon, "return must be followed by a semicolon");
 				current_function.blocks[_block_index].instructions.emplace_back(
-					new instruction_return()
+					new instruction_return(token.line_number)
 				);
 			break;
 			case token::types::kw_yield:
 				expect(token::types::semicolon, "yield must be followed by a semicolon");
 				current_function.blocks[_block_index].instructions.emplace_back(
-					new instruction_yield()
+					new instruction_yield(token.line_number)
 				);
 			break;
 			case token::types::kw_break:
 				expect(token::types::semicolon, "break must be followed by a semicolon");
 				current_function.blocks[_block_index].instructions.emplace_back(
-					new instruction_break()
+					new instruction_break(token.line_number)
 				);
 			break;
 			case token::types::kw_let:
 				variable_declaration_mode(_block_index);
+			break;
+			case token::types::kw_set:
+				variable_assignment_mode(_block_index);
 			break;
 			case token::types::pr_out:
 			case token::types::pr_fail:
@@ -124,30 +128,32 @@ void parser::instruction_mode(
 			case token::types::pr_host_add:
 			case token::types::pr_host_do: {
 				auto args=arguments_mode();
-				add_procedure(token.type, args, _block_index);
+				add_procedure(token, args, _block_index);
 				expect(token::types::semicolon, "procedure call arguments must be followed by a semicolon");
 			break;
 			}
 			case token::types::kw_if:
-				conditional_branch_mode(_block_index);
+				conditional_branch_mode(token.line_number, _block_index);
 			break;
 			case token::types::kw_loop:
-				loop_mode(_block_index);
+				loop_mode(token.line_number, _block_index);
 			break;
 			default:
-				throw parser_error(
-					std::string{"unexpected '"}
-					+type_to_str(token.type)
-					+"' when parsing instructions on line "
-					+std::to_string(token.line_number)
-				);
+
+				error_builder::get()<<"unexpected '"
+					<<type_to_str(token.type)
+					<<"' when parsing instructions"
+					<<throw_err{token.line_number, throw_err::types::parser};
 		}
 	}
 
-	throw parser_error(_eof_err_msg);
+	error_builder::get()
+		<<_eof_err_msg
+		<<throw_err{0, throw_err::types::parser};
 }
 
 void parser::loop_mode(
+	int _line_number,
 	int _block_index
 ) {
 	expect(token::types::semicolon, "loop must be followed by a semicolon");
@@ -166,11 +172,12 @@ void parser::loop_mode(
 	expect(token::types::semicolon, "endloop must be followed by a semicolon");
 
 	current_function.blocks[_block_index].instructions.emplace_back(
-		new instruction_loop(next_block_index)
+		new instruction_loop(_line_number, next_block_index)
 	);
 }
 
 void parser::conditional_branch_mode(
+	int _line_number,
 	int _block_index
 ) {
 	//TODO: this needs a refactor... 
@@ -187,19 +194,19 @@ void parser::conditional_branch_mode(
 		}
 
 		auto function=extract();
-		auto fnptr=build_function(function.type);
+		auto fnptr=build_function(function);
 		fnptr->arguments=arguments_mode();
 		expect(token::types::semicolon, "function for conditional branch declaration must end with semicolon");
 
 		//Add a new block for the branch...
 		add_block(block::types::linear, current_function);
 		int next_block_index=current_function.blocks.size()-1;
-		_ifbr.branches.push_back({std::move(fnptr), next_block_index, negated});
+		_ifbr.branches.push_back({std::move(fnptr), next_block_index, function.line_number, negated});
 		return next_block_index;
 	};
 
 	//Start the if instruction...
-	instruction_conditional_branch * ifbr=new instruction_conditional_branch();
+	instruction_conditional_branch * ifbr=new instruction_conditional_branch(_line_number);
 
 	//Add a first block...
 	int next_block_index=add(*ifbr);
@@ -208,17 +215,19 @@ void parser::conditional_branch_mode(
 	//breaking token so we can know if we need to look for more branches.
 
 	token::types last_type=token::types::kw_if;
+	int last_line=0;
 
 	while(true) {
 
 		instruction_mode(
-			[&last_type, this](const token& _tok) -> bool {
+			[&last_type, &last_line, this](const token& _tok) -> bool {
 				
 				if(_tok.type==token::types::kw_elseif 
 					|| _tok.type==token::types::kw_else
 					|| _tok.type==token::types::kw_endif
 				) {
 					last_type=_tok.type;
+					last_line=_tok.line_number;
 					return true;
 				}
 			
@@ -236,7 +245,7 @@ void parser::conditional_branch_mode(
 
 			add_block(block::types::linear, current_function);
 			next_block_index=current_function.blocks.size()-1;
-			ifbr->branches.push_back({nullptr, next_block_index, false});
+			ifbr->branches.push_back({nullptr, next_block_index, last_line, false});
 			expect(token::types::semicolon, "else must end with a semicolon");
 		}
 		else if(last_type==token::types::kw_endif) {
@@ -257,14 +266,14 @@ void parser::conditional_branch_mode(
 std::vector<variable> parser::arguments_mode(
 ) {
 
-	expect(token::types::open_bracket, "argument lists must begin with a left bracket");
+	auto open_bracket=expect(token::types::open_bracket, "argument lists must begin with a left bracket");
 	std::vector<variable> parameters;
 
 	while(true) {
 
 		if(!tokens.size()) {
 
-			throw parser_error("unexpected end of file, expected function parameters");
+			error_builder::get()<<"unexpected end of file, expected function parameters"<<throw_err{open_bracket.line_number, throw_err::types::parser};
 		}
 
 		auto token=extract();
@@ -297,12 +306,7 @@ std::vector<variable> parser::arguments_mode(
 				}
 			break;
 			default:
-				throw parser_error(
-					std::string{"unexpected '"}
-						+type_to_str(token.type)
-						+"' in argument list on line "
-						+std::to_string(token.line_number)
-				);
+				error_builder::get()<<"unexpected '"<<type_to_str(token.type)<<"' in argument list "<<throw_err{token.line_number, throw_err::types::parser};
 		}
 	}
 }
@@ -317,21 +321,16 @@ void parser::variable_declaration_mode(
 	auto value=extract();
 	switch(value.type) {
 		case token::types::val_string:
-			current_function.blocks[_block_index].instructions.emplace_back(
-				new instruction_declaration_static(identifier.str_val, {value.str_val})
-			);
-			expect(token::types::semicolon, "variable declaration must be finished with a semicolon");
-			return;
 		case token::types::val_bool:
-			current_function.blocks[_block_index].instructions.emplace_back(
-				new instruction_declaration_static(identifier.str_val, {value.bool_val})
-			);
-			expect(token::types::semicolon, "variable declaration must be finished with a semicolon");
-			return;
-		break;
 		case token::types::val_int:
+		case token::types::val_double:
+
 			current_function.blocks[_block_index].instructions.emplace_back(
-				new instruction_declaration_static(identifier.str_val, {value.int_val})
+				new instruction_declaration_static(
+					value.line_number, 
+					identifier.str_val, 
+					build_variable(value)
+				)
 			);
 			expect(token::types::semicolon, "variable declaration must be finished with a semicolon");
 			return;
@@ -345,13 +344,16 @@ void parser::variable_declaration_mode(
 		case token::types::fn_host_has:
 		case token::types::fn_host_get:
 		case token::types::fn_host_query:
+		case token::types::fn_add:
+		case token::types::fn_substract:
 		{
 
-			auto fnptr=build_function(value.type);
+			auto fnptr=build_function(value);
 			fnptr->arguments=arguments_mode();
 
 			current_function.blocks[_block_index].instructions.emplace_back(
 				new instruction_declaration_dynamic(
+					value.line_number,
 					identifier.str_val, 
 					fnptr
 				)
@@ -361,92 +363,147 @@ void parser::variable_declaration_mode(
 			return;
 		}
 		default:
-			throw parser_error(
-				std::string{"unexpected '"}
-					+type_to_str(value.type)
-					+"' in variable declaration on line "
-					+std::to_string(value.line_number)
+
+			error_builder::get()<<"unexpected '"<<type_to_str(value.type)<<"' in variable declaration "<<throw_err{value.line_number, throw_err::types::parser};
+	}
+}
+
+void parser::variable_assignment_mode(
+	int _block_index
+) {
+	//"set" has been already consumed so... identifier + to + value + semicolon...
+	auto identifier=expect(token::types::identifier, "set must be followed by an identifier");
+	expect(token::types::kw_to, "identifier in set declaration must be followed by to");
+
+	auto value=extract();
+	switch(value.type) {
+		case token::types::val_string:
+		case token::types::val_bool:
+		case token::types::val_int:
+		case token::types::val_double:
+
+			current_function.blocks[_block_index].instructions.emplace_back(
+				new instruction_assignment_static(
+					value.line_number, 
+					identifier.str_val, 
+					build_variable(value)
+				)
 			);
+			expect(token::types::semicolon, "variable assignment must be finished with a semicolon");
+			return;
+		case token::types::fn_is_equal:
+		case token::types::fn_is_lesser_than:
+		case token::types::fn_is_greater_than: 
+		case token::types::fn_is_int:
+		case token::types::fn_is_bool:
+		case token::types::fn_is_double:
+		case token::types::fn_is_string:
+		case token::types::fn_host_has:
+		case token::types::fn_host_get:
+		case token::types::fn_host_query:
+		case token::types::fn_add:
+		case token::types::fn_substract:
+		{
+
+			auto fnptr=build_function(value);
+			fnptr->arguments=arguments_mode();
+
+			current_function.blocks[_block_index].instructions.emplace_back(
+				new instruction_assignment_dynamic(
+					value.line_number,
+					identifier.str_val, 
+					fnptr
+				)
+			);
+
+			expect(token::types::semicolon, "variable declaration must be finished with a semicolon");
+			return;
+		}
+		default:
+
+			error_builder::get()<<"unexpected '"<<type_to_str(value.type)<<"' in variable declaration "<<throw_err{value.line_number, throw_err::types::parser};
 	}
 }
 
 std::unique_ptr<instruction_function> parser::build_function(
-	token::types _type
+	const token& _token_fn
 ) {
 	std::unique_ptr<instruction_function> fnptr;
 
-	switch(_type) {
+	switch(_token_fn.type) {
 		case token::types::fn_is_equal: 
-			fnptr.reset(new instruction_is_equal()); 
+			fnptr.reset(new instruction_is_equal(_token_fn.line_number)); 
 			return fnptr;
 		case token::types::fn_is_lesser_than: 
-			fnptr.reset(new instruction_is_lesser_than()); 
+			fnptr.reset(new instruction_is_lesser_than(_token_fn.line_number)); 
 			return fnptr;
 		case token::types::fn_is_greater_than:
-			fnptr.reset(new instruction_is_greater_than());
+			fnptr.reset(new instruction_is_greater_than(_token_fn.line_number));
 			return fnptr;
 		case token::types::fn_is_int:
-			fnptr.reset(new instruction_is_int());
+			fnptr.reset(new instruction_is_int(_token_fn.line_number));
 			return fnptr;
 		case token::types::fn_is_bool:
-			fnptr.reset(new instruction_is_bool());
+			fnptr.reset(new instruction_is_bool(_token_fn.line_number));
 			return fnptr;
 		case token::types::fn_is_double:
-			fnptr.reset(new instruction_is_double());
+			fnptr.reset(new instruction_is_double(_token_fn.line_number));
 			return fnptr;
 		case token::types::fn_is_string:
-			fnptr.reset(new instruction_is_string());
+			fnptr.reset(new instruction_is_string(_token_fn.line_number));
 			return fnptr;
 		case token::types::fn_host_has:
-			fnptr.reset(new instruction_host_has()); 
+			fnptr.reset(new instruction_host_has(_token_fn.line_number)); 
 			return fnptr;
 		case token::types::fn_host_get:
-			fnptr.reset(new instruction_host_get()); 
+			fnptr.reset(new instruction_host_get(_token_fn.line_number)); 
 			return fnptr;
 		case token::types::fn_host_query:
-			fnptr.reset(new instruction_host_query()); 
+			fnptr.reset(new instruction_host_query(_token_fn.line_number)); 
+			return fnptr;
+		case token::types::fn_add:
+			fnptr.reset(new instruction_add(_token_fn.line_number)); 
+			return fnptr;
+		case token::types::fn_substract:
+			fnptr.reset(new instruction_substract(_token_fn.line_number)); 
 			return fnptr;
 
-		default: 
-			throw parser_error(
-				std::string{"unkwnown function type '"}
-				+type_to_str(_type)
-				+"', this must mean the function is not added to the list of buildable functions"
-			);
+		default:
+
+			error_builder::get()<<"unknown function type '"<<type_to_str(_token_fn.type)<<"' this must mean the function is not added to the list of buildable functions "<<throw_err{_token_fn.line_number, throw_err::types::parser};
 	}
 
 	return fnptr;
 }
 
 void parser::add_procedure(
-	token::types _type, 
+	const token& _token, 
 	std::vector<variable>& _arguments,
 	int _block_index
 ) {
 	instruction_procedure * prptr{nullptr};
 
-	switch(_type) {
+	switch(_token.type) {
 		case token::types::pr_out:
-			prptr=new instruction_out();
+			prptr=new instruction_out(_token.line_number);
 		break;
 		case token::types::pr_fail:
-			prptr=new instruction_fail();
+			prptr=new instruction_fail(_token.line_number);
 		break;
 		case token::types::pr_host_set:
-			prptr=new instruction_host_set();
+			check_argcount(2, _arguments, _token);
+			prptr=new instruction_host_set(_token.line_number);
 		break;
 		case token::types::pr_host_add:
-			prptr=new instruction_host_add();
+			check_argcount(2, _arguments, _token);
+			prptr=new instruction_host_add(_token.line_number);
 		break;
 		case token::types::pr_host_do:
-			prptr=new instruction_host_do();
+			prptr=new instruction_host_do(_token.line_number);
 		break;
 		default:
-			throw parser_error(
-				std::string{"unknown procedure type '"}
-				+type_to_str(_type)
-				+"'"
-			);
+
+			error_builder::get()<<"unknown procedure type '"<<type_to_str(_token.type)<<"' "<<throw_err{_token.line_number, throw_err::types::parser};
 	}
 
 	prptr->arguments=_arguments;
@@ -454,6 +511,26 @@ void parser::add_procedure(
 	current_function.blocks[_block_index].instructions.emplace_back(
 		prptr
 	);
+}
+
+void parser::check_argcount(
+	std::size_t _expected, 
+	const std::vector<variable>& _arguments, 
+	const token& _token
+) {
+
+	if(_expected==_arguments.size()) {
+
+		return;
+	}
+
+	error_builder::get()<<"invalid argument count for '"
+		<<type_to_str(_token.type)
+		<<"' expected "
+		<<_expected
+		<<", got "
+		<<_arguments.size()
+		<<throw_err{_token.line_number, throw_err::types::parser};
 }
 
 token parser::expect(
@@ -473,15 +550,12 @@ token parser::expect(
 	tokens.erase(std::begin(tokens));
 	if(token.type!=_type) {
 
-		throw parser_error(
-			std::string{"expected '"}
-			+type_to_str(_type)
-			+"' got '"
-			+type_to_str(token.type)
-			+"', "
-			+_err_msg+", on line "
-			+std::to_string(token.line_number)
-		);
+		error_builder::get()<<"expected '"
+			<<type_to_str(_type)
+			<<"' got '"
+			<<type_to_str(token.type)
+			<<"' "
+			<<throw_err{token.line_number, throw_err::types::parser};
 	}
 
 	return token;
@@ -522,4 +596,20 @@ void parser::add_block(
 			std::vector<std::unique_ptr<instruction>>{}
 		}
 	);
+}
+
+variable parser::build_variable(
+	const token& _token
+) {
+
+	switch(_token.type) {
+		case token::types::val_string: return _token.str_val;
+		case token::types::val_bool: return _token.bool_val;
+		case token::types::val_int: return _token.int_val;
+		case token::types::val_double: return _token.double_val;
+		default:
+			error_builder::get()<<"invalid type for build_variable"<<throw_err{_token.line_number, throw_err::types::parser};
+	}
+
+	return false;
 }

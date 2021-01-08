@@ -11,9 +11,12 @@ std::string ascript::type_to_str(
 		case token::types::val_string: return "string_value"; 
 		case token::types::val_bool: return "boolean_value";
 		case token::types::val_int: return "integer_value";
+		case token::types::val_double: return "double_value";
 		case token::types::fn_is_equal: return "fn_is_equal";
 		case token::types::fn_is_greater_than: return "fn_is_greater_than"; 
 		case token::types::fn_is_lesser_than: return "fn_is_lesser_than"; 
+		case token::types::fn_add: return "fn_add";
+		case token::types::fn_substract: return "fn_substract";
 		case token::types::fn_is_int: return "fn_is_int";
 		case token::types::fn_is_bool: return "fn_is_bool";
 		case token::types::fn_is_double: return "fn_is_double";
@@ -38,6 +41,8 @@ std::string ascript::type_to_str(
 		case token::types::kw_return: return "return";
 		case token::types::kw_let: return "let";
 		case token::types::kw_be: return "be";
+		case token::types::kw_set: return "set";
+		case token::types::kw_to: return "to";
 		case token::types::kw_integer: return "kw_integer";
 		case token::types::kw_string: return "kw_string";
 		case token::types::kw_bool: return "kw_bool";

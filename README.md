@@ -4,7 +4,12 @@ Short for annoying script. An annoying script language.
 
 #TODO:
 
-- There's no way to reassign a variable. Set X to Y.
+- Make the parser understand decimal values. Should not be hard, just check
+if it's just numbers and a single dot xD!
+
+- Function parameters.
+
+- Yield... I wonder a LOT about this.
 
 - interpreter is next.
 	- i guess we'll need the host interface.

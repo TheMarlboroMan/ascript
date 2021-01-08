@@ -18,21 +18,22 @@ int main(
 	try {
 		ascript::tokenizer tk;
 		const auto tokens=tk.from_file(_argv[1]);
-
+/*
 std::cout<<"token list ----------------"<<std::endl;
 		for(const auto& r : tokens) {
 			std::cout<<r<<std::endl;
 		}
-
-std::cout<<"instruction list ----------"<<std::endl;
+*/
 		ascript::parser p;
 		const auto scripts=p.parse(tokens);
+/*
+std::cout<<"instruction list ----------"<<std::endl;
 		for(const auto& script : scripts) {
 
 			std::cout<<script<<std::endl;
 		}
+*/
 
-std::cout<<"parser -------------------"<<std::endl;
 		ascript::interpreter i;
 		i.run(scripts.at(0), {});
 

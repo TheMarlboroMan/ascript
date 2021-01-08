@@ -29,10 +29,14 @@ tokenizer::tokenizer() {
 	typemap["fail"]=token::types::pr_fail;
 	typemap["let"]=token::types::kw_let;
 	typemap["be"]=token::types::kw_be;
+	typemap["set"]=token::types::kw_set;
+	typemap["to"]=token::types::kw_to;
 	typemap["int"]=token::types::kw_integer;
 	typemap["string"]=token::types::kw_string;
 	typemap["bool"]=token::types::kw_bool;
 	typemap["as"]=token::types::kw_as;
+	typemap["add"]=token::types::fn_add;
+	typemap["substract"]=token::types::fn_substract;
 	typemap["host_has"]=token::types::fn_host_has;
 	typemap["host_add"]=token::types::pr_host_add;
 	typemap["host_get"]=token::types::fn_host_get;
@@ -91,7 +95,7 @@ std::vector<ascript::token> tokenizer::from_string(
 				if(strtoken.back()=='"') {
 
 					strtoken.pop_back();
-					result.push_back({token::types::val_string, strtoken, 0, false, line_number});
+					result.push_back({token::types::val_string, strtoken, 0, 0.0, false, line_number});
 					if(affix.size()) {
 
 						result.insert(std::end(result), std::rbegin(affix), std::rend(affix));
@@ -105,7 +109,7 @@ std::vector<ascript::token> tokenizer::from_string(
 					if(ss.peek()=='"') {
 
 						ss.get();
-						result.push_back({token::types::val_string, strtoken, 0, false, line_number});
+						result.push_back({token::types::val_string, strtoken, 0, 0.0, false, line_number});
 						break;
 					}
 					else {
@@ -145,7 +149,7 @@ std::vector<ascript::token> tokenizer::from_string(
 				else {
 
 					//Well, an identifier it is...
-					result.push_back({token::types::identifier, strtoken, 0, false, line_number});
+					result.push_back({token::types::identifier, strtoken, 0, 0.0, false, line_number});
 				}
 			}
 
@@ -184,28 +188,28 @@ void tokenizer::peel_token(
 
 	if(first==';') {
 
-		_result.push_back({token::types::semicolon, "", 0, false, _line_number});
+		_result.push_back({token::types::semicolon, "", 0, 0.0, false, _line_number});
 		_strtoken.erase(0, 1);
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
 
 	if(first==',') {
 
-		_result.push_back({token::types::comma, "", 0, false, _line_number});
+		_result.push_back({token::types::comma, "", 0, 0.0, false, _line_number});
 		_strtoken.erase(0, 1);
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
 	
 	if(first==']') {
 
-		_result.push_back({token::types::close_bracket, "", 0, false, _line_number});
+		_result.push_back({token::types::close_bracket, "", 0, 0.0, false, _line_number});
 		_strtoken.erase(0, 1);
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
 
 	if(first=='[') {
 
-		_result.push_back({token::types::open_bracket, "", 0, false, _line_number});
+		_result.push_back({token::types::open_bracket, "", 0, 0.0, false, _line_number});
 		_strtoken.erase(0, 1);
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
@@ -214,28 +218,28 @@ void tokenizer::peel_token(
 	char last=_strtoken.back();
 	if(last==';') {
 
-		_affix.push_back({token::types::semicolon, "", 0, false, _line_number});
+		_affix.push_back({token::types::semicolon, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
 
 	if(last==',') {
 
-		_affix.push_back({token::types::comma, "", 0, false, _line_number});
+		_affix.push_back({token::types::comma, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
 	
 	if(last==']') {
 
-		_affix.push_back({token::types::close_bracket, "", 0, false, _line_number});
+		_affix.push_back({token::types::close_bracket, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
 
 	if(last=='[') {
 
-		_affix.push_back({token::types::open_bracket, "", 0, false, _line_number});
+		_affix.push_back({token::types::open_bracket, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
 		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
 	}
@@ -251,7 +255,7 @@ bool tokenizer::try_keyword(
 
 	if(typemap.count(_strtoken)) {
 
-		_result.push_back({typemap.at(_strtoken), "", 0, false, _line_number});
+		_result.push_back({typemap.at(_strtoken), "", 0, 0.0, false, _line_number});
 		return true;
 	}
 
@@ -266,13 +270,13 @@ bool tokenizer::try_boolean(
 
 	if(_strtoken=="true") {
 	
-		_result.push_back({token::types::val_bool, "", 0, true, _line_number});
+		_result.push_back({token::types::val_bool, "", 0, 0.0, true, _line_number});
 		return true;
 	}
 
 	if(_strtoken=="false") {
 	
-		_result.push_back({token::types::val_bool, "", 0, false, _line_number});
+		_result.push_back({token::types::val_bool, "", 0, 0.0, false, _line_number});
 		return true;
 	}
 	
@@ -289,7 +293,7 @@ bool tokenizer::try_integer(
 	long int n = std::strtol(_strtoken.c_str(), &c, 10);
 	if(*c == 0) {
 
-		_result.push_back({token::types::val_int, "", (int)n, false, _line_number});
+		_result.push_back({token::types::val_int, "", (int)n, 0.0, false, _line_number});
 		return true;
 	}
 

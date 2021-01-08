@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 #include <ostream>
 
@@ -16,7 +17,10 @@ struct run_context;
 //base class for all script instructions.
 struct instruction {
 
+	                        instruction(int _line_number): line_number{_line_number} {}
 	virtual                 ~instruction(){}
+
+	int                     line_number;
 
 	//!For debug purposes, all instructions know how to print themselves.
 	virtual void            format_out(std::ostream&) const=0;
@@ -27,6 +31,7 @@ struct instruction {
 //anything.
 struct instruction_procedure:instruction {
 
+                            instruction_procedure(int _line_number):instruction{_line_number}{}
 	virtual                 ~instruction_procedure(){}
 	std::vector<variable>   arguments;
 };
@@ -35,7 +40,9 @@ struct instruction_procedure:instruction {
 //is_equal, host_query...
 struct instruction_function:instruction {
 
+                            instruction_function(int _line_number):instruction{_line_number}{}
 	virtual                 ~instruction_function(){}
+	virtual variable        evaluate(run_context&) const=0;
 	std::vector<variable>   arguments;
 };
 
@@ -45,6 +52,7 @@ struct instruction_function:instruction {
 //instruction to print something out.
 struct instruction_out:instruction_procedure {
 
+                            instruction_out(int _line_number):instruction_procedure{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
@@ -52,24 +60,28 @@ struct instruction_out:instruction_procedure {
 //instruction to stop execution of script with error
 struct instruction_fail:instruction_procedure {
 
+                            instruction_fail(int _line_number):instruction_procedure{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
 
 struct instruction_host_set:instruction_procedure {
 
+                            instruction_host_set(int _line_number):instruction_procedure{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
 
 struct instruction_host_add:instruction_procedure {
 
+                            instruction_host_add(int _line_number):instruction_procedure{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
 
 struct instruction_host_do:instruction_procedure {
 
+                            instruction_host_do(int _line_number):instruction_procedure{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
@@ -77,70 +89,108 @@ struct instruction_host_do:instruction_procedure {
 //instruction to compare the first parameter with the rest
 struct instruction_is_equal:instruction_function {
 
+                            instruction_is_equal(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 //instruction to compare the first parameter with the rest
 struct instruction_is_lesser_than:instruction_function {
 
+                            instruction_is_lesser_than(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 //instruction to compare the first parameter with the rest
 struct instruction_is_greater_than:instruction_function {
 
+                            instruction_is_greater_than(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
+};
+
+//instruction to add n numeric parameters
+struct instruction_add:instruction_function {
+
+                            instruction_add(int _line_number):instruction_function{_line_number}{}
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
+};
+
+//instruction to subsract n numeric parameters
+struct instruction_substract:instruction_function {
+
+                            instruction_substract(int _line_number):instruction_function{_line_number}{}
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 struct instruction_host_has:instruction_function {
 
+                            instruction_host_has(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 struct instruction_is_int:instruction_function {
 
+                            instruction_is_int(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 struct instruction_is_bool:instruction_function {
 
+                            instruction_is_bool(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 struct instruction_is_double:instruction_function {
 
+                            instruction_is_double(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 struct instruction_is_string:instruction_function {
 
+                            instruction_is_string(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 struct instruction_host_get:instruction_function {
 
+                            instruction_host_get(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 struct instruction_host_query:instruction_function {
 
+                            instruction_host_query(int _line_number):instruction_function{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
 };
 
 //instruction to declare a variable with a static value "let x be y;"
 struct instruction_declaration_static:instruction {
 
-	                        instruction_declaration_static(const std::string&, const variable&);
+	                        instruction_declaration_static(int, const std::string&, const variable&);
 	std::string             identifier;
 	variable                value;
 	void                    format_out(std::ostream&) const;
@@ -151,7 +201,28 @@ struct instruction_declaration_static:instruction {
 //function "let x be lala [a, b, c];"
 struct instruction_declaration_dynamic:instruction {
 
-	                        instruction_declaration_dynamic(const std::string&, std::unique_ptr<instruction_function>&);
+	                        instruction_declaration_dynamic(int, const std::string&, std::unique_ptr<instruction_function>&);
+	std::string             identifier;
+	std::unique_ptr<instruction_function> function;
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+};
+
+//instruction to assign a variable with a static value "set x to y;"
+struct instruction_assignment_static:instruction {
+
+	                        instruction_assignment_static(int, const std::string&, const variable&);
+	std::string             identifier;
+	variable                value;
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+};
+
+//instruction to assign a variable with a dynamic value derived from a 
+//function "set x to lala [a, b, c];"
+struct instruction_assignment_dynamic:instruction {
+
+	                        instruction_assignment_dynamic(int, const std::string&, std::unique_ptr<instruction_function>&);
 	std::string             identifier;
 	std::unique_ptr<instruction_function> function;
 	void                    format_out(std::ostream&) const;
@@ -161,6 +232,7 @@ struct instruction_declaration_dynamic:instruction {
 //instruction to exit a script.
 struct instruction_return:instruction {
 
+                            instruction_return(int _line_number):instruction{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
@@ -168,6 +240,7 @@ struct instruction_return:instruction {
 //instruction to yield cycles to the host.
 struct instruction_yield:instruction {
 
+                            instruction_yield(int _line_number):instruction{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
@@ -175,6 +248,7 @@ struct instruction_yield:instruction {
 //instruction to break of loop.
 struct instruction_break:instruction {
 
+                            instruction_break(int _line_number):instruction{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
@@ -184,13 +258,15 @@ struct instruction_break:instruction {
 struct conditional_path {
 
 	std::unique_ptr<instruction_function>   function;
-	int                                     target_block_index;
+	int                                     target_block_index,
+	                                        line_number;
 	bool                                    negated;
 };
 
 //!instruction to execute conditional logic.
 struct instruction_conditional_branch:instruction {
 
+                            instruction_conditional_branch(int _line_number):instruction{_line_number}{}
 	std::vector<conditional_path>           branches;
 
 	void                    format_out(std::ostream&) const;
@@ -200,7 +276,7 @@ struct instruction_conditional_branch:instruction {
 //!instruction to execute a loop.
 struct instruction_loop:instruction {
 
-	                        instruction_loop(int);
+	                        instruction_loop(int, int);
 	int                     target_block_index;
 
 	void                    format_out(std::ostream&) const;
@@ -224,6 +300,8 @@ struct function {
 	//TODO: We'll see about that when it comes to implementing it.
 	std::vector<std::string>                    parameter_names;
 };
+
+std::vector<variable>   solve(const std::vector<variable>&, const std::map<std::string, variable>&, int);
 
 std::ostream& operator<<(std::ostream&, const instruction&);
 std::ostream& operator<<(std::ostream&, const conditional_path&);

@@ -16,10 +16,11 @@ struct run_context {
 
 	//TODO: The symbol table should be added too...
 
- 	std::map<std::string, variable> symbol_table;
+	std::map<std::string, variable> symbol_table;
 	host *                          host_ptr{nullptr};
 	signals                         signal{signals::none};
-	int                             aux{0}; //Whatever this may represent.
+	int                             aux{0}; //Whatever this may represent, usually the block to jump to.
+	variable                        value{false}; //A value produced by some function.
 
 };
 

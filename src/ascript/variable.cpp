@@ -1,5 +1,7 @@
 #include "ascript/variable.h"
 
+#include <stdexcept>
+
 using namespace ascript;
 
 variable::variable(
@@ -77,3 +79,123 @@ std::ostream& ascript::operator<<(
 	return _stream;
 }
 
+bool variable::operator==(
+	const variable& _other
+) const {
+
+	if(type!=_other.type) {
+
+		return false;
+	}
+
+	switch(type) {
+
+		case variable::types::integer:
+			return int_val==_other.int_val;
+		case variable::types::boolean:
+			return bool_val==_other.bool_val;
+		case variable::types::string:
+		case variable::types::symbol:
+			return str_val==_other.str_val;
+		case variable::types::decimal:
+			return double_val==_other.double_val;
+	}
+
+	return false;
+}
+
+bool variable::operator<(
+	const variable& _other
+) const {
+
+	if(type!=_other.type) {
+
+		throw std::runtime_error("lesser than type mismatch");
+	}
+
+	switch(type) {
+
+		case variable::types::integer:
+			return int_val < _other.int_val;
+		case variable::types::decimal:
+			return double_val < _other.double_val;
+		case variable::types::boolean:
+		case variable::types::string:
+		case variable::types::symbol:
+			throw std::runtime_error("lesser than is only applicable to numeric types");
+	}
+
+	return false;
+}
+
+bool variable::operator>(
+	const variable& _other
+) const {
+
+	if(type!=_other.type) {
+
+		throw std::runtime_error("greater than type mismatch");
+	}
+
+	switch(type) {
+
+		case variable::types::integer:
+			return int_val > _other.int_val;
+		case variable::types::decimal:
+			return double_val > _other.double_val;
+		case variable::types::boolean:
+		case variable::types::string:
+		case variable::types::symbol:
+			throw std::runtime_error("greater than is only applicable to numeric types");
+	}
+
+	return false;
+}
+
+variable variable::operator+(
+	const variable& _other
+) const {
+
+	if(type!=_other.type) {
+
+		throw std::runtime_error("addition type mismatch");
+	}
+
+	switch(type) {
+
+		case variable::types::integer:
+			return int_val+_other.int_val;
+		case variable::types::decimal:
+			return double_val+_other.double_val;
+		case variable::types::boolean:
+		case variable::types::string:
+		case variable::types::symbol:
+			throw std::runtime_error("addition is only applicable to numeric types");
+	}
+
+	return false;
+}
+
+variable variable::operator-(
+	const variable& _other
+) const {
+
+	if(type!=_other.type) {
+
+		throw std::runtime_error("substraction type mismatch");
+	}
+
+	switch(type) {
+
+		case variable::types::integer:
+			return int_val-_other.int_val;
+		case variable::types::decimal:
+			return double_val-_other.double_val;
+		case variable::types::boolean:
+		case variable::types::string:
+		case variable::types::symbol:
+			throw std::runtime_error("substraction is only applicable to numeric types");
+	}
+
+	return false;
+}
