@@ -25,7 +25,7 @@ variable::variable(
 variable::variable(
 	double _val
 ):
-	type{types::integer},
+	type{types::decimal},
 	bool_val{false},
 	int_val{0},
 	double_val{_val}

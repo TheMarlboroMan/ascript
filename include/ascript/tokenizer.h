@@ -23,6 +23,7 @@ class tokenizer {
 	bool                        try_keyword(const std::string&, std::vector<token>&, int);
 	bool                        try_boolean(const std::string&, std::vector<token>&, int);
 	bool                        try_integer(const std::string&, std::vector<token>&, int);
+	bool                        try_double(const std::string&, std::vector<token>&, int);
 
 	std::map<std::string, token::types> typemap;
 };

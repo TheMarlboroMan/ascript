@@ -77,6 +77,10 @@ std::ostream& ascript::operator<<(
 
 		_stream<<" (\""<<_token.int_val<<"\")";
 	}
+	else if(_token.type==token::types::val_double) {
+
+		_stream<<" (\""<<_token.double_val<<"\")";
+	}
 	else if(_token.type==token::types::identifier) {
 
 		_stream<<" \""<<_token.str_val<<"\"";

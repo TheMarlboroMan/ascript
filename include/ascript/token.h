@@ -16,8 +16,8 @@ struct token {
 		fn_is_equal, //done
 		fn_is_greater_than, //done
 		fn_is_lesser_than, //done
-		fn_add,
-		fn_substract,
+		fn_add, //done
+		fn_substract, //done
 		fn_is_int, //done
 		fn_is_bool,//done
 		fn_is_double, //done

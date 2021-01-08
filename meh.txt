@@ -1,6 +1,15 @@
 beginfunction meh;
 
 	let one be 1; let two be 2;
+	let d be 12.2;
+
+	out ["this is d ", d];
+
+	if is_double [d];
+		out ["is double"];
+	else;
+		out [d, " is not double"];
+	endif;
 
 	if is_equal [one, two];
 		fail ["something is horribly wrong"];

@@ -602,6 +602,8 @@ variable parser::build_variable(
 	const token& _token
 ) {
 
+std::cout<<_token<<std::endl;
+
 	switch(_token.type) {
 		case token::types::val_string: return _token.str_val;
 		case token::types::val_bool: return _token.bool_val;

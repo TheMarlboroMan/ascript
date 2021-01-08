@@ -4,9 +4,6 @@ Short for annoying script. An annoying script language.
 
 #TODO:
 
-- Make the parser understand decimal values. Should not be hard, just check
-if it's just numbers and a single dot xD!
-
 - Function parameters.
 
 - Yield... I wonder a LOT about this.

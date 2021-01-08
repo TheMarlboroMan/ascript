@@ -16,6 +16,10 @@ tokenizer::tokenizer() {
 	typemap["is_equal"]=token::types::fn_is_equal;
 	typemap["is_greater_than"]=token::types::fn_is_greater_than;
 	typemap["is_lesser_than"]=token::types::fn_is_lesser_than;
+	typemap["is_int"]=token::types::fn_is_int;
+	typemap["is_bool"]=token::types::fn_is_bool;
+	typemap["is_double"]=token::types::fn_is_double;
+	typemap["is_string"]=token::types::fn_is_string;
 	typemap["not"]=token::types::kw_not;
 	typemap["if"]=token::types::kw_if;
 	typemap["elseif"]=token::types::kw_elseif;
@@ -139,6 +143,10 @@ std::vector<ascript::token> tokenizer::from_string(
 					//Noop.
 				}
 				else if(try_boolean(strtoken, result, line_number)) {
+
+					//Noop.
+				}
+				else if(try_double(strtoken, result, line_number)) {
 
 					//Noop.
 				}
@@ -294,6 +302,29 @@ bool tokenizer::try_integer(
 	if(*c == 0) {
 
 		_result.push_back({token::types::val_int, "", (int)n, 0.0, false, _line_number});
+		return true;
+	}
+
+	return false;
+}
+
+bool tokenizer::try_double(
+	const std::string& _strtoken,
+	std::vector<token>& _result,
+	int _line_number
+) {
+
+	if(std::string::npos==_strtoken.find('.')) {
+
+		return false;
+	}
+
+
+	char * c;
+	double n = std::strtod(_strtoken.c_str(), &c);
+	if(*c == 0) {
+
+		_result.push_back({token::types::val_double, "", 0, n, false, _line_number});
 		return true;
 	}
 
