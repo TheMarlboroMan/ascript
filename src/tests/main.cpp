@@ -35,7 +35,8 @@ std::cout<<"instruction list ----------"<<std::endl;
 */
 
 		ascript::interpreter i;
-		i.run(scripts.at(0), {});
+		i.run(scripts.at(0), {"lol", true});
+		i.run(scripts.at(1), {});
 
 		return 0;
 	}

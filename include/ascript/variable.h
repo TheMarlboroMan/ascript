@@ -14,6 +14,8 @@ struct variable {
 	                        variable(int);
 	                        variable(double);
 	                        variable(const std::string&);
+	                        variable(const char);
+	                        variable(const char *);
 	                        variable(const std::string&, types); //hacky symbol constructor.
 	bool                    bool_val{false};
 	int                     int_val{0};

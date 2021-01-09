@@ -874,14 +874,32 @@ std::ostream& ascript::operator<<(
 
 std::ostream& ascript::operator<<(
 	std::ostream& _stream, 
+	const parameter& _parameter
+) {
+
+	_stream<<_parameter.name<<" of ";
+	switch(_parameter.type) {
+		case parameter::types::integer: _stream<<"integer"; break;
+		case parameter::types::decimal: _stream<<"decimal"; break;
+		case parameter::types::boolean: _stream<<"boolean"; break;
+		case parameter::types::string: _stream<<"string"; break;
+		case parameter::types::any: _stream<<"any"; break;
+	}
+
+	_stream<<" type"<<std::endl;
+	return _stream;
+}
+
+std::ostream& ascript::operator<<(
+	std::ostream& _stream, 
 	const function& _function
 ) {
 
 	_stream<<"function '"<<_function.name<<"', takes: ["<<std::endl;
 
-	for(const auto& paramname : _function.parameter_names) {
+	for(const auto& param : _function.parameters) {
 
-		_stream<<paramname<<",";
+		_stream<<param<<",";
 	}
 
 	int block_index=0;

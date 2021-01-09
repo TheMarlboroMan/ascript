@@ -1,3 +1,9 @@
+beginfunction blah [ something as string, meh as any];
+
+	out [something, " , ", meh];
+
+endfunction;
+
 beginfunction meh;
 
 	let one be 1; let two be 2;
@@ -23,6 +29,7 @@ beginfunction meh;
 		out ["looper as ", looper];
 		if is_equal [looper, 10];
 
+			set one to 33;
 			out ["will break"];
 			break;
 		endif;
@@ -30,7 +37,7 @@ beginfunction meh;
 		set looper to add [looper, 1];
 	endloop;
 
-	out ["bye!"];
+	out ["bye ", looper, " and ", one, "!"];
 
 endfunction;
 

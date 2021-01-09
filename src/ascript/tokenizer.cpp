@@ -38,6 +38,8 @@ tokenizer::tokenizer() {
 	typemap["int"]=token::types::kw_integer;
 	typemap["string"]=token::types::kw_string;
 	typemap["bool"]=token::types::kw_bool;
+	typemap["double"]=token::types::kw_double;
+	typemap["any"]=token::types::kw_anytype;
 	typemap["as"]=token::types::kw_as;
 	typemap["add"]=token::types::fn_add;
 	typemap["substract"]=token::types::fn_substract;

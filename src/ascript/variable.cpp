@@ -42,6 +42,26 @@ variable::variable(
 {}
 
 variable::variable(
+	const char _val
+):
+	type{types::string},
+	bool_val{false},
+	int_val{0},
+	double_val{0.},
+	str_val{_val}
+{}
+
+variable::variable(
+	const char * _val
+):
+	type{types::string},
+	bool_val{false},
+	int_val{0},
+	double_val{0.},
+	str_val{_val}
+{}
+
+variable::variable(
 	const std::string& _identifier,
 	types /*_unused*/
 ):

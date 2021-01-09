@@ -8,10 +8,64 @@ using namespace ascript;
 
 void interpreter::run(
 	const function& _function, 
-	const std::vector<variable>& /*_parameters*/
+	const std::vector<variable>& _arguments
 ) {
 
-	//TODO: parameters??? add them to the symbol table!!!
+	std::map<std::string, variable> symbol_table;
+
+	if(_arguments.size() != _function.parameters.size()) {
+
+		error_builder::get()
+			<<"wrong parameter count for "
+			<<_function.name
+			<<", expected "
+			<<_function.parameters.size()
+			<<", got "
+			<<_arguments.size()
+			<<throw_err{0, throw_err::types::parser};
+	}
+
+	std::size_t index=0;
+	for(const auto& param : _function.parameters) {
+
+		const auto& arg=_arguments[index];
+		bool failed=false;
+
+		switch(param.type) {
+			case parameter::types::integer:
+				if(arg.type!=variable::types::integer) {
+					failed=true;
+				}
+			break;
+			case parameter::types::decimal:
+				if(arg.type!=variable::types::decimal) {
+					failed=true;
+				}
+			break;
+			case parameter::types::boolean:
+
+				if(arg.type!=variable::types::boolean) {
+					failed=true;
+				}
+			break;
+			case parameter::types::string:
+				if(arg.type!=variable::types::string) {
+					failed=true;
+				}
+			break;
+			case parameter::types::any: break;
+		}
+
+		if(failed) {
+			error_builder::get()<<"type mismatch argument for parameter "
+				<<param.name
+				<<" in function "
+				<<_function.name
+				<<throw_err{0, throw_err::types::parser};
+		}
+
+		symbol_table.insert(std::make_pair(param.name, _arguments[index++]));
+	}
 
 	current_function=&_function;
 
@@ -21,6 +75,7 @@ void interpreter::run(
 	);
 
 	current_stack=&stacks.back();
+	current_stack->context.symbol_table=symbol_table;
 	interpret();
 }
 

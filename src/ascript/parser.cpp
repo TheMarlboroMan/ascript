@@ -24,13 +24,11 @@ void parser::root_mode() {
 		expect(token::types::kw_beginfunction, "only beginfunction is allowed in root nodes");
 		auto functionname=expect(token::types::identifier, "beginfunction must be followed by an identifier");
 
-		std::vector<variable> params;
+		std::vector<parameter> params;
 
 		if(peek().type!=token::types::semicolon) {
 
-			//TODO: actually, should be arguments mode, so we can have different
-			//stuff, types and so on.
-			params=arguments_mode();
+			params=parameters_mode();
 		}
 
 		expect(token::types::semicolon, "function declaration must end with a semicolon");
@@ -42,27 +40,12 @@ void parser::root_mode() {
 
 void parser::function_mode(
 	const token& _function_tok,
-	const std::vector<variable>& _parameters,
+	const std::vector<parameter>& _parameters,
 	int _block_index
 ) {
 
 	current_function.name=_function_tok.str_val;
-
-	current_function.parameter_names.clear();
-	std::transform(
-		std::begin(_parameters),
-		std::end(_parameters),
-		std::back_inserter(current_function.parameter_names),
-		[&_function_tok](const variable& _var) {
-
-			if(_var.type!=variable::types::symbol) {
-
-				error_builder::get()<<"parameters for functions must be expressed as identifiers"<<throw_err{_function_tok.line_number, throw_err::types::parser};
-			}
-
-			return _var.str_val;
-		}
-	);
+	current_function.parameters=_parameters;
 
 	//Clear the current function...
 	current_function.blocks.clear();
@@ -273,7 +256,7 @@ std::vector<variable> parser::arguments_mode(
 
 		if(!tokens.size()) {
 
-			error_builder::get()<<"unexpected end of file, expected function parameters"<<throw_err{open_bracket.line_number, throw_err::types::parser};
+			error_builder::get()<<"unexpected end of file, expected function arguments"<<throw_err{open_bracket.line_number, throw_err::types::parser};
 		}
 
 		auto token=extract();
@@ -307,6 +290,55 @@ std::vector<variable> parser::arguments_mode(
 			break;
 			default:
 				error_builder::get()<<"unexpected '"<<type_to_str(token.type)<<"' in argument list "<<throw_err{token.line_number, throw_err::types::parser};
+		}
+	}
+}
+
+//!Retrieves the parameters from the node previous to [ to ].
+std::vector<parameter> parser::parameters_mode(
+) {
+
+	auto open_bracket=expect(token::types::open_bracket, "parameter lists must begin with a left bracket");
+
+	std::vector<parameter> parameters;
+
+	while(true) {
+
+		auto identifier=expect(token::types::identifier, "expected identifier in function parameter declaration");
+		expect(token::types::kw_as, "expected as after parameter name");
+		auto type=extract();
+
+		auto ptype=parameter::types::integer;
+
+		switch(type.type) {
+
+			case token::types::kw_integer: ptype=parameter::types::integer; break;
+			case token::types::kw_string: ptype=parameter::types::string; break;
+			case token::types::kw_bool: ptype=parameter::types::boolean; break;
+			case token::types::kw_double: ptype=parameter::types::decimal; break;
+			case token::types::kw_anytype: ptype=parameter::types::any; break;
+			default:
+				error_builder::get()
+					<<"unexpected '"
+					<<type_to_str(type.type)
+					<<"', expected data type in function parameter declaration"
+					<<throw_err{type.line_number, throw_err::types::parser};
+		}
+
+		parameters.push_back({identifier.str_val, ptype});
+
+		auto next=extract();
+
+		switch(next.type) {
+			case token::types::close_bracket:
+				return parameters;
+			case token::types::comma: break;
+			default:
+				error_builder::get()
+					<<"unexpected '"
+					<<type_to_str(next.type)
+					<<"', expected comma or close bracket after function parameter declaration"
+					<<throw_err{next.line_number, throw_err::types::parser};
 		}
 	}
 }
@@ -601,8 +633,6 @@ void parser::add_block(
 variable parser::build_variable(
 	const token& _token
 ) {
-
-std::cout<<_token<<std::endl;
 
 	switch(_token.type) {
 		case token::types::val_string: return _token.str_val;

@@ -290,6 +290,13 @@ struct block {
 	std::vector<std::unique_ptr<instruction>>   instructions;
 };
 
+//!A parameter definition, which is a name and a type.
+struct parameter {
+
+	std::string                                 name;
+	enum class types{integer, decimal, boolean, string, any} type;
+};
+
 //!A script definition. A script is made up of a list of blocks, whose 
 //!first is the main one. Plus a list of argument names that must be inserted
 //!on the table.
@@ -297,8 +304,7 @@ struct function {
 
 	std::string                                 name;
 	std::vector<block>                          blocks;
-	//TODO: We'll see about that when it comes to implementing it.
-	std::vector<std::string>                    parameter_names;
+	std::vector<parameter>                      parameters;
 };
 
 std::vector<variable>   solve(const std::vector<variable>&, const std::map<std::string, variable>&, int);
@@ -306,6 +312,8 @@ std::vector<variable>   solve(const std::vector<variable>&, const std::map<std::
 std::ostream& operator<<(std::ostream&, const instruction&);
 std::ostream& operator<<(std::ostream&, const conditional_path&);
 std::ostream& operator<<(std::ostream&, const block&);
+std::ostream& operator<<(std::ostream&, const parameter&);
 std::ostream& operator<<(std::ostream&, const function&);
+
 
 }

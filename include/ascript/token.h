@@ -47,6 +47,8 @@ struct token {
 		kw_integer,
 		kw_string,
 		kw_bool,
+		kw_double,
+		kw_anytype,
 		kw_as,
 		kw_beginfunction, //done
 		kw_endfunction, //done

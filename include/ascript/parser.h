@@ -22,13 +22,16 @@ class parser {
 	void                    root_mode();
 
 	//!Starts a function.
-	void                    function_mode(const token&, const std::vector<variable>&, int);
+	void                    function_mode(const token&, const std::vector<parameter>&, int);
 
 	//!Regular operation parsing mode.
 	void                    instruction_mode(std::function<bool(const token&)>, int, const std::string&);
 
 	//!Reading bracket delimiter arguments.
 	std::vector<variable>   arguments_mode();
+
+	//!Reading bracket delimited function parameters.
+	std::vector<parameter>   parameters_mode();
 
 	//!Reading a variable declaration.
 	void                    variable_declaration_mode(int);
