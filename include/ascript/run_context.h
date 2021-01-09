@@ -11,10 +11,8 @@ struct run_context {
 
 	enum class signals {none, sigbreak, sigreturn, sigyield, sigjump, sigfail};
 
+	//Clears signals and values.
 	void                            reset();
-	void                            resume();
-
-	//TODO: The symbol table should be added too...
 
 	std::map<std::string, variable> symbol_table;
 	host *                          host_ptr{nullptr};

@@ -81,8 +81,13 @@ void interpreter::run(
 
 void interpreter::resume() {
 
-	//TODO: This should go ahead if we yielded.
-	//I guess we run... interpret?
+	if(!yield_signal) {
+
+		throw std::runtime_error("called resume on non yielding process");
+	}
+
+	yield_signal=false;
+	interpret();
 }
 
 void interpreter::interpret() {
@@ -125,15 +130,18 @@ void interpreter::interpret() {
 			break;
 			case run_context::signals::sigyield:
 
-				//TODO: Hmmm... this will not yield in N depth... I guess there
-				//should be a generic "yield" signal that makes all shit 
-				//return, just as break.
+				yield_signal=true;
 				return; 
 			break;
 			case run_context::signals::sigjump:
 				push_stack(current_stack->context.aux);
 				interpret();
 			break;
+		}
+
+		if(yield_signal) {
+
+			return;
 		}
 
 		if(break_signal) {

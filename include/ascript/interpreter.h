@@ -33,7 +33,8 @@ class interpreter {
 	const function *    current_function{nullptr};
 	std::vector<stack>  stacks;
 	stack *             current_stack{nullptr};
-	bool                break_signal{false};
+	bool                break_signal{false},
+	                    yield_signal{false};
 };
 
 }
