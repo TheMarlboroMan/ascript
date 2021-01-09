@@ -22,61 +22,7 @@ void interpreter::run(
 ) {
 	current_host=&_host;
 
-	std::map<std::string, variable> symbol_table;
-
-	if(_arguments.size() != _function.parameters.size()) {
-
-		error_builder::get()
-			<<"wrong parameter count for "
-			<<_function.name
-			<<", expected "
-			<<_function.parameters.size()
-			<<", got "
-			<<_arguments.size()
-			<<throw_err{0, throw_err::types::parser};
-	}
-
-	std::size_t index=0;
-	for(const auto& param : _function.parameters) {
-
-		const auto& arg=_arguments[index];
-		bool failed=false;
-
-		switch(param.type) {
-			case parameter::types::integer:
-				if(arg.type!=variable::types::integer) {
-					failed=true;
-				}
-			break;
-			case parameter::types::decimal:
-				if(arg.type!=variable::types::decimal) {
-					failed=true;
-				}
-			break;
-			case parameter::types::boolean:
-
-				if(arg.type!=variable::types::boolean) {
-					failed=true;
-				}
-			break;
-			case parameter::types::string:
-				if(arg.type!=variable::types::string) {
-					failed=true;
-				}
-			break;
-			case parameter::types::any: break;
-		}
-
-		if(failed) {
-			error_builder::get()<<"type mismatch argument for parameter "
-				<<param.name
-				<<" in function "
-				<<_function.name
-				<<throw_err{0, throw_err::types::parser};
-		}
-
-		symbol_table.insert(std::make_pair(param.name, _arguments[index++]));
-	}
+	auto symbol_table=prepare_symbol_table(_function, _arguments, 0);
 
 	//Start the first stack...
 	stacks.push_back(
@@ -116,7 +62,6 @@ void interpreter::interpret() {
 
 		instruction->run(current_stack->context);
 
-
 		switch(current_stack->context.signal) {
 
 			case run_context::signals::none: 
@@ -141,10 +86,36 @@ void interpreter::interpret() {
 				yield_signal=true;
 				return; 
 			break;
+
+			case run_context::signals::sigcall:{
+
+				//Check if the function exists...
+				if(!functions.count(current_stack->context.value.str_val)) {
+
+					error_builder::get()<<"undefined function "
+						<<current_stack->context.value.str_val
+						<<throw_err{instruction->line_number, throw_err::types::user};
+				}
+
+				auto symbol_table=prepare_symbol_table(
+					*functions.at(current_stack->context.value.str_val), 
+					current_stack->context.arguments, 
+					instruction->line_number
+				);
+
+				push_stack(
+					functions.at(current_stack->context.value.str_val),
+					0,
+					symbol_table
+				);
+			}
+			break;
+
 			case run_context::signals::sigjump:
+
 				push_stack(
 					current_stack->current_function,
-					current_stack->context.aux
+					current_stack->context.value.int_val
 				);
 			break;
 		}
@@ -194,6 +165,20 @@ void interpreter::push_stack(
 	current_stack->context.symbol_table=exiting_table;
 }
 
+void interpreter::push_stack(
+	const function * _function, 
+	int _stack_index, 
+	std::map<std::string, variable>& _symbol_table
+) {
+
+	stacks.push_back(
+		{_function, _stack_index, 0, {current_host}}
+	);
+
+	current_stack=&stacks.back();
+	current_stack->context.symbol_table=std::move(_symbol_table);
+}
+
 void interpreter::pop_stack(
 	bool into_break,
 	int _line_number
@@ -240,4 +225,69 @@ void interpreter::add_function(
 	}
 
 	functions.insert(std::make_pair(_func.name, &_func));
+}
+
+std::map<std::string, variable> interpreter::prepare_symbol_table(
+	const function& _function, 
+	const std::vector<variable>& _arguments,
+	int _line_number
+) {
+
+	std::map<std::string, variable> symbol_table;
+
+	if(_arguments.size() != _function.parameters.size()) {
+
+		error_builder::get()
+			<<"wrong parameter count for "
+			<<_function.name
+			<<", expected "
+			<<_function.parameters.size()
+			<<", got "
+			<<_arguments.size()
+			<<throw_err{_line_number, throw_err::types::interpreter};
+	}
+
+	std::size_t index=0;
+	for(const auto& param : _function.parameters) {
+
+		const auto& arg=_arguments[index];
+		bool failed=false;
+
+		switch(param.type) {
+			case parameter::types::integer:
+				if(arg.type!=variable::types::integer) {
+					failed=true;
+				}
+			break;
+			case parameter::types::decimal:
+				if(arg.type!=variable::types::decimal) {
+					failed=true;
+				}
+			break;
+			case parameter::types::boolean:
+
+				if(arg.type!=variable::types::boolean) {
+					failed=true;
+				}
+			break;
+			case parameter::types::string:
+				if(arg.type!=variable::types::string) {
+					failed=true;
+				}
+			break;
+			case parameter::types::any: break;
+		}
+
+		if(failed) {
+			error_builder::get()<<"type mismatch argument for parameter "
+				<<param.name
+				<<" in function "
+				<<_function.name
+				<<throw_err{0, throw_err::types::interpreter};
+		}
+
+		symbol_table.insert(std::make_pair(param.name, _arguments[index++]));
+	}
+
+	return symbol_table;
 }

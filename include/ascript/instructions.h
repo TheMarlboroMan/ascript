@@ -195,7 +195,7 @@ struct instruction_function_call:instruction {
 
 	                        instruction_function_call(int, const std::string&, const std::vector<variable>&);
 	std::string             function_name;
-	std::vector<variable>   parameters;
+	std::vector<variable>   arguments;
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };

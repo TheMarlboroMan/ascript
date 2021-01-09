@@ -42,7 +42,9 @@ class interpreter {
 	private:
 
 	void                interpret();
+	std::map<std::string, variable> prepare_symbol_table(const function&, const std::vector<variable>&, int);
 	void                push_stack(const function *, int);
+	void                push_stack(const function *, int, std::map<std::string, variable>&);
 	void                pop_stack(bool, int);
 
 	//!Functions are implied to be owned by some other thing.

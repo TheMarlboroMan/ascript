@@ -1,17 +1,30 @@
 beginfunction blah [ something as string, meh as any];
 
-	out [something, " , ", meh];
-	host_add ["lol", 33];
+	out ["i am blah: ", something, " , ", meh];
+
+	if not host_has ["lol"];
+
+		host_add ["lol", 33];
+	endif;
+
+	#TODO: if I remove this instruction, shit explodes.
+	out ["leaving blah"];
 
 endfunction;
 
 beginfunction meh;
 
-	let one be 1; let two be 2;
+	let one be 1; 
+	let two be 2;
 	let d be 12.2;
 
-	let hv be host_get ["lol"];
-	out ["lol is ", hv];
+	if host_has ["lol"];
+		out ["there is lol"];
+		let hv be host_get ["lol"];
+		out ["lol is ", hv];
+	else;
+		out ["there is no lol"];
+	endif;
 
 	let hvar be host_get ["var"];
 	out ["var is ", hvar];

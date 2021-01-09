@@ -16,7 +16,7 @@ class script_host:
 
 		if(!symbol_table.count(_symbol)) {
 
-			throw ascript::host_error("symbol not defined");
+			throw ascript::host_error(_symbol+" -> host_get -> symbol not defined");
 		}
 
 		return symbol_table.at(_symbol);
@@ -34,7 +34,10 @@ class script_host:
 
 		if(symbol_table.count(_symbol)) {
 
-			throw ascript::host_error("symbol already defined");
+			throw ascript::host_error(
+				std::string{"symbol '"}
+				+_symbol
+				+"'	already defined");
 		}
 
 		symbol_table.insert(std::make_pair(_symbol, _val));
@@ -47,7 +50,7 @@ class script_host:
 
 		if(!symbol_table.count(_symbol)) {
 
-			throw ascript::host_error("symbol not defined");
+			throw ascript::host_error(_symbol+" -> host_set -> symbol not defined");
 		}
 
 		symbol_table.at(_symbol)=_val;
@@ -87,6 +90,7 @@ int main(
 
 		for(const auto& s : scripts) {
 			i.add_function(s);
+//			std::cout<<s<<std::endl;
 		}
 
 		i.run(sh, "blah", {"lol", true});

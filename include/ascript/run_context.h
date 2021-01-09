@@ -9,7 +9,7 @@ namespace ascript {
 
 struct run_context {
 
-	enum class signals {none, sigbreak, sigreturn, sigyield, sigjump, sigfail};
+	enum class signals {none, sigbreak, sigreturn, sigyield, sigjump, sigfail, sigcall};
 
 	                                run_context(host*);
 
@@ -19,8 +19,8 @@ struct run_context {
 	std::map<std::string, variable> symbol_table;
 	host *                          host_ptr{nullptr};
 	signals                         signal{signals::none};
-	int                             aux{0}; //Whatever this may represent, usually the block to jump to.
-	variable                        value{false}; //A value produced by some function.
+	variable                        value{false}; //A value produced by some function or the index of a block.
+	std::vector<variable>           arguments; //Vector of arguments to be passed to a call from sigcall.
 
 };
 

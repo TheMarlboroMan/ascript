@@ -41,11 +41,11 @@ std::vector<variable> ascript::solve(
 instruction_function_call::instruction_function_call(
 	int _line_number, 
 	const std::string& _function_name, 
-	const std::vector<variable>& _parameters
+	const std::vector<variable>& _arguments
 ):
 	instruction{_line_number},
 	function_name{_function_name},
-	parameters{_parameters}
+	arguments{_arguments}
 {}
 
 instruction_declaration_static::instruction_declaration_static(
@@ -460,15 +460,12 @@ variable instruction_host_query::evaluate(
 }
 
 void instruction_function_call::run(
-	run_context& /*_ctx*/
+	run_context& _ctx
 ) const {
 
-	//ok, we need to add shit to the context... 
-	//TODO TODO TODO TODO
-	//i guess we could signal "call", but where do we store the parameters
-	//so they can be added to the new symbol table?
-	//TODO TODO TODO TODO
-	//how do we check parameter count????
+	_ctx.value=function_name;
+	_ctx.arguments=solve(arguments, _ctx.symbol_table, line_number);
+	_ctx.signal=run_context::signals::sigcall;
 }
 
 void instruction_declaration_static::run(
@@ -567,7 +564,7 @@ void instruction_conditional_branch::run(
 		if(!branch.function) {
 
 			_ctx.signal=run_context::signals::sigjump;
-			_ctx.aux=branch.target_block_index;
+			_ctx.value=branch.target_block_index;
 			return;
 		}
 
@@ -582,13 +579,13 @@ void instruction_conditional_branch::run(
 		if(!branch.negated && val.bool_val) {
 
 			_ctx.signal=run_context::signals::sigjump;
-			_ctx.aux=branch.target_block_index;
+			_ctx.value=branch.target_block_index;
 			return;
 		}
 		else if(branch.negated && !val.bool_val) {
 
 			_ctx.signal=run_context::signals::sigjump;
-			_ctx.aux=branch.target_block_index;
+			_ctx.value=branch.target_block_index;
 			return;
 		}
 	}
@@ -599,7 +596,7 @@ void instruction_loop::run(
 ) const {
 
 	_ctx.signal=run_context::signals::sigjump;
-	_ctx.aux=target_block_index;
+	_ctx.value=target_block_index;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -819,8 +816,8 @@ void instruction_function_call::format_out(
 ) const {
 
 	_stream<<"call '"<<function_name<<"' with ";
-	for(const auto& param : parameters) {
-		_stream<<param<<", ";
+	for(const auto& arg : arguments) {
+		_stream<<arg<<", ";
 	}
 }
 
