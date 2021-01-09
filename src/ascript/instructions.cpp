@@ -38,6 +38,16 @@ std::vector<variable> ascript::solve(
 	return result;
 }
 
+instruction_function_call::instruction_function_call(
+	int _line_number, 
+	const std::string& _function_name, 
+	const std::vector<variable>& _parameters
+):
+	instruction{_line_number},
+	function_name{_function_name},
+	parameters{_parameters}
+{}
+
 instruction_declaration_static::instruction_declaration_static(
 	int _line_number,
 	const std::string& _identifier, 
@@ -449,6 +459,18 @@ variable instruction_host_query::evaluate(
 	return _ctx.host_ptr->host_query(solve(arguments, _ctx.symbol_table, line_number));
 }
 
+void instruction_function_call::run(
+	run_context& /*_ctx*/
+) const {
+
+	//ok, we need to add shit to the context... 
+	//TODO TODO TODO TODO
+	//i guess we could signal "call", but where do we store the parameters
+	//so they can be added to the new symbol table?
+	//TODO TODO TODO TODO
+	//how do we check parameter count????
+}
+
 void instruction_declaration_static::run(
 	run_context& _ctx
 ) const {
@@ -790,6 +812,16 @@ void instruction_break::format_out(
 ) const {
 
 	_stream<<"break";
+}
+
+void instruction_function_call::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"call '"<<function_name<<"' with ";
+	for(const auto& param : parameters) {
+		_stream<<param<<", ";
+	}
 }
 
 void instruction_declaration_static::format_out(

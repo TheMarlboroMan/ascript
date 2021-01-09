@@ -105,6 +105,9 @@ void parser::instruction_mode(
 			case token::types::kw_set:
 				variable_assignment_mode(_block_index);
 			break;
+			case token::types::kw_call:
+				call_mode(_block_index, token);
+			break;
 			case token::types::pr_out:
 			case token::types::pr_fail:
 			case token::types::pr_host_set:
@@ -648,4 +651,43 @@ variable parser::build_variable(
 	}
 
 	return false;
+}
+
+void parser::call_mode(
+	int _block_index,
+	const token& _token
+) {
+
+	//call [ fnname, params... ];
+	auto arguments=arguments_mode();
+
+	//All we know is that there should be at least one argument and it should
+	//be an identifier.
+
+	if(!arguments.size()) {
+
+		error_builder::get()
+			<<"function call must have at least one argument, the function name"
+			<<throw_err{_token.line_number, throw_err::types::parser};
+	}
+
+	const auto first=arguments.front();
+	if(first.type!=variable::types::symbol) {
+
+		error_builder::get()
+			<<"function call must have its first argument as a symbol, the function name"
+			<<throw_err{_token.line_number, throw_err::types::parser};
+	}
+
+	//Remove name.
+	arguments.erase(std::begin(arguments));
+	expect(token::types::semicolon, "expected semicolon after function call");
+
+	current_function.blocks[_block_index].instructions.emplace_back(
+		new instruction_function_call(
+			_token.line_number,
+			first.str_val,
+			arguments
+		)
+	);
 }

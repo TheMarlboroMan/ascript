@@ -46,7 +46,10 @@ std::string ascript::type_to_str(
 		case token::types::kw_integer: return "kw_integer";
 		case token::types::kw_string: return "kw_string";
 		case token::types::kw_bool: return "kw_bool";
+		case token::types::kw_double: return "kw_double";
+		case token::types::kw_anytype: return "kw_anytype";
 		case token::types::kw_as: return "as";
+		case token::types::kw_call: return "call";
 		case token::types::kw_beginfunction: return "beginfunction";
 		case token::types::kw_endfunction: return "endfunction";
 		case token::types::semicolon: return ";";

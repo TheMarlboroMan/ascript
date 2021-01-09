@@ -187,6 +187,19 @@ struct instruction_host_query:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Language instructions.
+
+//instruction to run a function call [fnname, params...];
+struct instruction_function_call:instruction {
+
+	                        instruction_function_call(int, const std::string&, const std::vector<variable>&);
+	std::string             function_name;
+	std::vector<variable>   parameters;
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+};
+
 //instruction to declare a variable with a static value "let x be y;"
 struct instruction_declaration_static:instruction {
 

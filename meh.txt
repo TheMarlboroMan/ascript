@@ -18,6 +18,9 @@ beginfunction meh;
 
 	out ["this is d ", d];
 
+	let strparam be host_get ["some_string"];
+	call [ blah, strparam, hvar ];
+
 	if is_double [d];
 		out ["is double"];
 	else;

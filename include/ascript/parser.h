@@ -48,6 +48,9 @@ class parser {
 	//!Reading loops...
 	void                    loop_mode(int, int);
 
+	//!Reading function calls.
+	void                    call_mode(int, const token&);
+
 	//!Reading a procedure (out, fail...)
 	void                    add_procedure(const token&, std::vector<variable>&, int);
 

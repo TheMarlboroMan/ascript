@@ -8,6 +8,15 @@ using namespace ascript;
 
 void interpreter::run(
 	host& _host,
+	const std::string& _funcname, 
+	const std::vector<variable>& _arguments
+) {
+
+	run(_host, *functions.at(_funcname), _arguments);
+}
+
+void interpreter::run(
+	host& _host,
 	const function& _function, 
 	const std::vector<variable>& _arguments
 ) {
@@ -69,11 +78,9 @@ void interpreter::run(
 		symbol_table.insert(std::make_pair(param.name, _arguments[index++]));
 	}
 
-	current_function=&_function;
-
 	//Start the first stack...
 	stacks.push_back(
-		{0, 0, {current_host}}
+		{&_function, 0, 0, {current_host}}
 	);
 
 	current_stack=&stacks.back();
@@ -94,17 +101,16 @@ void interpreter::resume() {
 
 void interpreter::interpret() {
 
-	bool breaking=false,
-		 is_done=false;
+	bool breaking=false;
 
 	//This methods runs a single stack.
-	while(!breaking && !is_done) {
+	while(!breaking && stacks.size()) {
 
 		current_stack->context.reset();
-		const auto& current_block=(current_function->blocks[current_stack->block_index]);
+		const auto& current_block=(current_stack->current_function->blocks[current_stack->block_index]);
 		const auto& instruction=current_block.instructions[current_stack->instruction_index];
 
-//std::cout<<" >> "<<current_stack->block_index<<":"<<current_stack->instruction_index<<" -> "<<*instruction<<std::endl;
+//std::cout<<" >> "<<current_stack->current_function->name<<":"<<current_stack->block_index<<":"<<current_stack->instruction_index<<" -> "<<*instruction<<std::endl;
 
 		++current_stack->instruction_index;
 
@@ -136,8 +142,10 @@ void interpreter::interpret() {
 				return; 
 			break;
 			case run_context::signals::sigjump:
-				push_stack(current_stack->context.aux);
-				interpret();
+				push_stack(
+					current_stack->current_function,
+					current_stack->context.aux
+				);
 			break;
 		}
 
@@ -157,27 +165,29 @@ void interpreter::interpret() {
 			return;
 		}
 
-		is_done=current_block.instructions.size()==(std::size_t)current_stack->instruction_index;
+		bool is_done=current_block.instructions.size()==(std::size_t)current_stack->instruction_index;
 
 		if(is_done && current_block.type==block::types::loop) {
 
 			current_stack->instruction_index=0;
-			is_done=false;
 			continue;
 		}
-	}
+		else if(is_done) {
 
-	pop_stack(false, 0);
+			pop_stack(false, instruction->line_number);
+		}
+	}
 }
 
 void interpreter::push_stack(
+	const function * _function,
 	int _stack_index
 ) {
 
 	auto exiting_table=current_stack->context.symbol_table;
 
 	stacks.push_back(
-		{_stack_index, 0, {current_host}}
+		{_function, _stack_index, 0, {current_host}}
 	);
 
 	current_stack=&stacks.back();
@@ -199,7 +209,7 @@ void interpreter::pop_stack(
 
 			error_builder::get()
 				<<"unexpected break outside loop in "
-				<<current_function->name
+				<<current_stack->current_function->name
 				<<throw_err{_line_number, throw_err::types::interpreter};
 		}
 
@@ -215,4 +225,19 @@ void interpreter::pop_stack(
 			symbol.second=exiting_table.at(symbol.first);
 		}
 	}
+}
+
+void interpreter::add_function(
+	const function& _func
+) {
+
+	if(functions.count(_func.name)) {
+
+		throw std::runtime_error(std::string{"function "}
+			+_func.name
+			+"already exists"
+		);
+	}
+
+	functions.insert(std::make_pair(_func.name, &_func));
 }

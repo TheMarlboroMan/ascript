@@ -75,28 +75,24 @@ int main(
 	try {
 		ascript::tokenizer tk;
 		const auto tokens=tk.from_file(_argv[1]);
-/*
-std::cout<<"token list ----------------"<<std::endl;
-		for(const auto& r : tokens) {
-			std::cout<<r<<std::endl;
-		}
-*/
+
 		ascript::parser p;
 		const auto scripts=p.parse(tokens);
-/*
-std::cout<<"instruction list ----------"<<std::endl;
-		for(const auto& script : scripts) {
-
-			std::cout<<script<<std::endl;
-		}
-*/
 
 		script_host sh;
 		sh.symbol_table.insert(std::make_pair("var", 12));
+		sh.symbol_table.insert(std::make_pair("some_string", "this string"));
 
 		ascript::interpreter i;
-		i.run(sh, scripts.at(0), {"lol", true});
-		i.run(sh, scripts.at(1), {});
+
+		for(const auto& s : scripts) {
+			i.add_function(s);
+		}
+
+		i.run(sh, "blah", {"lol", true});
+		i.run(sh, "meh", {});
+
+		//TODO: Now make an interactive one to test "yield"
 
 		return 0;
 	}
