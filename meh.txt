@@ -1,6 +1,7 @@
 beginfunction blah [ something as string, meh as any];
 
 	out [something, " , ", meh];
+	host_add ["lol", 33];
 
 endfunction;
 
@@ -8,6 +9,12 @@ beginfunction meh;
 
 	let one be 1; let two be 2;
 	let d be 12.2;
+
+	let hv be host_get ["lol"];
+	out ["lol is ", hv];
+
+	let hvar be host_get ["var"];
+	out ["var is ", hvar];
 
 	out ["this is d ", d];
 

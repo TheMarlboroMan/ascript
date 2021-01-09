@@ -146,17 +146,7 @@ void instruction_host_set::run(
 		error_builder::get()<<"host_set expects first argument to be a string"<<throw_err{line_number, throw_err::types::interpreter};
 	}
 
-	if(!_ctx.symbol_table.count(symbol.str_val)) {
-
-		error_builder::get()<<"host_set expects first argument to be a existing variable"<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	if(_ctx.symbol_table.at(symbol.str_val).type != value.type) {
-
-		error_builder::get()<<"host_set type mismatch"<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	_ctx.symbol_table.at(symbol.str_val)=value;
+	_ctx.host_ptr->host_set(symbol.str_val, value);
 }
 
 void instruction_host_add::run(
@@ -167,24 +157,14 @@ void instruction_host_add::run(
 	const auto symbol=solved.at(0);
 	const auto value=solved.at(1);
 
-	if(symbol.type!=variable::types::string) {
-
-		error_builder::get()<<"host_add expects first argument to be a string"<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	if(_ctx.symbol_table.count(symbol.str_val)) {
-
-		error_builder::get()<<"host_add expects first argument to be a non-existing variable"<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	_ctx.symbol_table.insert(std::make_pair(symbol.str_val, value));
+	_ctx.host_ptr->host_add(symbol.str_val, value);
 }
 
 void instruction_host_do::run(
-	run_context&
+	run_context& _ctx
 ) const {
 
-//TODO:
+	_ctx.host_ptr->host_do(solve(arguments, _ctx.symbol_table, line_number));
 }
 
 void instruction_is_equal::run(
@@ -336,9 +316,21 @@ variable instruction_host_has::evaluate(
 
 	auto solved=solve(arguments, _ctx.symbol_table, line_number);
 
-	//TODO:
+	return std::all_of(
+		std::begin(solved),
+		std::end(solved),
+		[&_ctx, this](const variable& _var) {
 
-	return {false};
+			if(_var.type!=variable::types::string) {
+
+				error_builder::get()
+					<<"host_has must be called with strings"
+					<<throw_err{line_number, throw_err::types::host};
+			}
+
+			return _ctx.host_ptr->host_has(_var.str_val);
+		}
+	);
 }
 
 void instruction_is_int::run(
@@ -391,6 +383,7 @@ variable instruction_is_double::evaluate(
 ) const {
 
 	const auto solved=solve(arguments, _ctx.symbol_table, line_number);
+
 	return std::all_of(
 		std::begin(solved),
 		std::end(solved),
@@ -428,9 +421,18 @@ variable instruction_host_get::evaluate(
 	run_context& _ctx
 ) const {
 
+	//Argument count is made at parse time.
 	auto solved=solve(arguments, _ctx.symbol_table, line_number);
-	//TODO:
-	return {false};
+
+	auto arg=solved.front();
+	if(arg.type!=variable::types::string) {
+
+		error_builder::get()
+			<<"host_get must be called with strings"
+			<<throw_err{line_number, throw_err::types::host};
+	}
+
+	return _ctx.host_ptr->host_get(arg.str_val);
 }
 
 void instruction_host_query::run(
@@ -444,9 +446,7 @@ variable instruction_host_query::evaluate(
 	run_context& _ctx
 ) const {
 
-	auto solved=solve(arguments, _ctx.symbol_table, line_number);
-	//TODO:
-	return {false};
+	return _ctx.host_ptr->host_query(solve(arguments, _ctx.symbol_table, line_number));
 }
 
 void instruction_declaration_static::run(

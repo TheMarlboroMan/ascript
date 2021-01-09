@@ -383,6 +383,10 @@ void parser::variable_declaration_mode(
 			auto fnptr=build_function(value);
 			fnptr->arguments=arguments_mode();
 
+			if(value.type==token::types::fn_host_get) {
+				check_argcount(1, fnptr->arguments, value);
+			}
+
 			current_function.blocks[_block_index].instructions.emplace_back(
 				new instruction_declaration_dynamic(
 					value.line_number,

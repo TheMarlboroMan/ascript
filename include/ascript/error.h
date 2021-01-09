@@ -24,10 +24,15 @@ struct user_error:ascript_error {
 	                        user_error(const std::string& _msg):ascript_error(_msg){}
 };
 
+struct host_error:ascript_error {
+
+	                        host_error(const std::string& _msg):ascript_error(_msg){}
+};
+
 struct throw_err {
 
 	int                     line_number;
-	enum class types        {parser, interpreter, user} type;
+	enum class types        {parser, interpreter, user, host} type;
 };
 
 struct error_builder {
@@ -53,6 +58,8 @@ struct error_builder {
 				throw interpreter_error(ss.str());
 			case throw_err::types::user:
 				throw user_error(ss.str());
+			case throw_err::types::host:
+				throw host_error(ss.str());
 		}
 	}
 

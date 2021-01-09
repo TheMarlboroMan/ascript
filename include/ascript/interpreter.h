@@ -20,7 +20,7 @@ class interpreter {
 
 	public:
 
-	void                run(const function&, const std::vector<variable>&);
+	void                run(host&, const function&, const std::vector<variable>&);
 	bool                is_finished() const {return stacks.size()==0;}
 	void                resume();
 
@@ -30,6 +30,7 @@ class interpreter {
 	void                push_stack(int);
 	void                pop_stack(bool, int);
 
+	host *              current_host{nullptr};
 	const function *    current_function{nullptr};
 	std::vector<stack>  stacks;
 	stack *             current_stack{nullptr};

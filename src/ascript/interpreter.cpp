@@ -7,9 +7,11 @@
 using namespace ascript;
 
 void interpreter::run(
+	host& _host,
 	const function& _function, 
 	const std::vector<variable>& _arguments
 ) {
+	current_host=&_host;
 
 	std::map<std::string, variable> symbol_table;
 
@@ -71,7 +73,7 @@ void interpreter::run(
 
 	//Start the first stack...
 	stacks.push_back(
-		{0, 0, run_context{}}
+		{0, 0, {current_host}}
 	);
 
 	current_stack=&stacks.back();
@@ -175,7 +177,7 @@ void interpreter::push_stack(
 	auto exiting_table=current_stack->context.symbol_table;
 
 	stacks.push_back(
-		{_stack_index, 0, run_context{}}
+		{_stack_index, 0, {current_host}}
 	);
 
 	current_stack=&stacks.back();

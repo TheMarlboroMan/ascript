@@ -11,6 +11,8 @@ struct run_context {
 
 	enum class signals {none, sigbreak, sigreturn, sigyield, sigjump, sigfail};
 
+	                                run_context(host*);
+
 	//Clears signals and values.
 	void                            reset();
 
