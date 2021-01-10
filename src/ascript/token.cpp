@@ -24,6 +24,7 @@ std::string ascript::type_to_str(
 		case token::types::fn_host_has: return "fn_host_has";
 		case token::types::fn_host_get: return "fn_host_get";
 		case token::types::fn_host_query: return "fn_host_query";
+		case token::types::pr_host_delete: return "pr_host_delete";
 		case token::types::pr_host_set: return "pr_host_set";
 		case token::types::pr_host_add: return "pr_host_add";
 		case token::types::pr_host_do: return "pr_host_do";
@@ -38,6 +39,7 @@ std::string ascript::type_to_str(
 		case token::types::kw_break: return "break";
 		case token::types::kw_endloop: return "endloop";
 		case token::types::kw_yield: return "yield"; 
+		case token::types::kw_exit: return "exit";
 		case token::types::kw_return: return "return";
 		case token::types::kw_let: return "let";
 		case token::types::kw_be: return "be";

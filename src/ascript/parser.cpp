@@ -99,6 +99,12 @@ void parser::instruction_mode(
 					new instruction_break(token.line_number)
 				);
 			break;
+			case token::types::kw_exit:
+				expect(token::types::semicolon, "exit must be followed by a semicolon");
+				current_function.blocks[_block_index].instructions.emplace_back(
+					new instruction_exit(token.line_number)
+				);
+			break;
 			case token::types::kw_let:
 				variable_declaration_mode(_block_index);
 			break;
@@ -112,6 +118,7 @@ void parser::instruction_mode(
 			case token::types::pr_fail:
 			case token::types::pr_host_set:
 			case token::types::pr_host_add:
+			case token::types::pr_host_delete:
 			case token::types::pr_host_do: {
 				auto args=arguments_mode();
 				add_procedure(token, args, _block_index);
@@ -537,6 +544,10 @@ void parser::add_procedure(
 			check_argcount(2, _arguments, _token);
 			prptr=new instruction_host_add(_token.line_number);
 		break;
+		case token::types::pr_host_delete:
+			check_argcount(1, _arguments, _token);
+			prptr=new instruction_host_delete(_token.line_number);
+		break;
 		case token::types::pr_host_do:
 			prptr=new instruction_host_do(_token.line_number);
 		break;
@@ -661,8 +672,6 @@ void parser::call_mode(
 	//call [ fnname, params... ];
 	auto arguments=arguments_mode();
 
-	//All we know is that there should be at least one argument and it should
-	//be an identifier.
 
 	if(!arguments.size()) {
 
@@ -672,12 +681,6 @@ void parser::call_mode(
 	}
 
 	const auto first=arguments.front();
-	if(first.type!=variable::types::symbol) {
-
-		error_builder::get()
-			<<"function call must have its first argument as a symbol, the function name"
-			<<throw_err{_token.line_number, throw_err::types::parser};
-	}
 
 	//Remove name.
 	arguments.erase(std::begin(arguments));
@@ -686,7 +689,7 @@ void parser::call_mode(
 	current_function.blocks[_block_index].instructions.emplace_back(
 		new instruction_function_call(
 			_token.line_number,
-			first.str_val,
+			first,
 			arguments
 		)
 	);

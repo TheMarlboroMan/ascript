@@ -9,7 +9,7 @@ namespace ascript {
 
 struct run_context {
 
-	enum class signals {none, sigbreak, sigreturn, sigyield, sigjump, sigfail, sigcall};
+	enum class signals {none, sigbreak, sigreturn, sigyield, sigjump, sigfail, sigcall, sigexit};
 
 	                                run_context(host*);
 

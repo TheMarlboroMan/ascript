@@ -1,12 +1,32 @@
 #include "ascript/instructions.h"
 #include "ascript/run_context.h"
 #include "ascript/error.h"
+#include "ascript/token.h"
 
 #include <algorithm>
 #include <numeric>
 #include <iostream>
 
 using namespace ascript;
+
+variable ascript::solve(
+	const variable& _var, 
+	const std::map<std::string, variable>& _symbol_table, 
+	int _line_number
+) {
+
+	if(_var.type!=variable::types::symbol) {
+
+		return _var;
+	}
+
+	if(!_symbol_table.count(_var.str_val)) {
+
+		error_builder::get()<<"undefined variable "<<_var.str_val<<throw_err{_line_number, throw_err::types::interpreter};
+	}
+
+	return _symbol_table.at(_var.str_val);
+}
 
 std::vector<variable> ascript::solve(
 	const std::vector<variable>& _variables, 
@@ -21,17 +41,7 @@ std::vector<variable> ascript::solve(
 		std::back_inserter(result),
 		[&_symbol_table, _line_number](const variable& _var) {
 
-			if(_var.type!=variable::types::symbol) {
-
-				return _var;
-			}
-
-			if(!_symbol_table.count(_var.str_val)) {
-
-				error_builder::get()<<"undefined variable "<<_var.str_val<<throw_err{_line_number, throw_err::types::interpreter};
-			}
-
-			return _symbol_table.at(_var.str_val);
+			return solve(_var, _symbol_table, _line_number);
 		}
 	);
 
@@ -40,7 +50,7 @@ std::vector<variable> ascript::solve(
 
 instruction_function_call::instruction_function_call(
 	int _line_number, 
-	const std::string& _function_name, 
+	const variable& _function_name, 
 	const std::vector<variable>& _arguments
 ):
 	instruction{_line_number},
@@ -168,6 +178,16 @@ void instruction_host_add::run(
 	const auto value=solved.at(1);
 
 	_ctx.host_ptr->host_add(symbol.str_val, value);
+}
+
+void instruction_host_delete::run(
+	run_context& _ctx
+) const {
+
+	auto solved=solve(arguments, _ctx.symbol_table, line_number);
+	const auto symbol=solved.at(0);
+
+	_ctx.host_ptr->host_delete(symbol.str_val);
 }
 
 void instruction_host_do::run(
@@ -463,7 +483,17 @@ void instruction_function_call::run(
 	run_context& _ctx
 ) const {
 
-	_ctx.value=function_name;
+	auto fnname=solve(function_name, _ctx.symbol_table, line_number);
+	if(fnname.type != variable::types::string) {
+
+		error_builder::get()
+			<<"call function name '"
+			<<fnname
+			<<"' must solve to a string"
+			<<throw_err{line_number, throw_err::types::interpreter};
+	}
+
+	_ctx.value=fnname;
 	_ctx.arguments=solve(arguments, _ctx.symbol_table, line_number);
 	_ctx.signal=run_context::signals::sigcall;
 }
@@ -537,6 +567,8 @@ void instruction_return::run(
 	run_context& _ctx
 ) const {
 
+	//TODO: Maybe, if we return something we can store in the context as
+	//returned val.
 	_ctx.signal=run_context::signals::sigreturn;
 }
 
@@ -552,6 +584,13 @@ void instruction_break::run(
 ) const {
 
 	_ctx.signal=run_context::signals::sigbreak;
+}
+
+void instruction_exit::run(
+	run_context& _ctx
+) const {
+
+	_ctx.signal=run_context::signals::sigexit;
 }
 
 void instruction_conditional_branch::run(
@@ -640,6 +679,17 @@ void instruction_host_add::format_out(
 ) const {
 
 	_stream<<"host_add[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_host_delete::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"host_delete[";
 	for(const auto& var : arguments) {
 		_stream<<var<<",";
 	}
@@ -809,6 +859,13 @@ void instruction_break::format_out(
 ) const {
 
 	_stream<<"break";
+}
+
+void instruction_exit::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"exit";
 }
 
 void instruction_function_call::format_out(

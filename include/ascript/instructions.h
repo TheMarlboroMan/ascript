@@ -79,6 +79,13 @@ struct instruction_host_add:instruction_procedure {
 	void                    run(run_context&)const;
 };
 
+struct instruction_host_delete:instruction_procedure {
+
+                            instruction_host_delete(int _line_number):instruction_procedure{_line_number}{}
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+};
+
 struct instruction_host_do:instruction_procedure {
 
                             instruction_host_do(int _line_number):instruction_procedure{_line_number}{}
@@ -193,8 +200,8 @@ struct instruction_host_query:instruction_function {
 //instruction to run a function call [fnname, params...];
 struct instruction_function_call:instruction {
 
-	                        instruction_function_call(int, const std::string&, const std::vector<variable>&);
-	std::string             function_name;
+	                        instruction_function_call(int, const variable&, const std::vector<variable>&);
+	variable                function_name;
 	std::vector<variable>   arguments;
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
@@ -261,7 +268,15 @@ struct instruction_yield:instruction {
 //instruction to break of loop.
 struct instruction_break:instruction {
 
-                            instruction_break(int _line_number):instruction{_line_number}{}
+	                        instruction_break(int _line_number):instruction{_line_number}{}
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+};
+
+//!instruction to fully abort execution.
+struct instruction_exit:instruction {
+
+	                        instruction_exit(int _line_number):instruction{_line_number}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
 };
@@ -321,6 +336,7 @@ struct function {
 };
 
 std::vector<variable>   solve(const std::vector<variable>&, const std::map<std::string, variable>&, int);
+variable                solve(const variable&, const std::map<std::string, variable>&, int);
 
 std::ostream& operator<<(std::ostream&, const instruction&);
 std::ostream& operator<<(std::ostream&, const conditional_path&);

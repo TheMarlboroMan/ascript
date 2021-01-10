@@ -47,12 +47,14 @@ tokenizer::tokenizer() {
 	typemap["host_add"]=token::types::pr_host_add;
 	typemap["host_get"]=token::types::fn_host_get;
 	typemap["host_set"]=token::types::pr_host_set;
+	typemap["host_delete"]=token::types::pr_host_delete;
 	typemap["host_query"]=token::types::fn_host_query;
 	typemap["host_do"]=token::types::pr_host_do;
 	typemap["out"]=token::types::pr_out;
 	typemap["beginfunction"]=token::types::kw_beginfunction;
 	typemap["endfunction"]=token::types::kw_endfunction;
 	typemap["call"]=token::types::kw_call;
+	typemap["exit"]=token::types::kw_exit;
 }
 
 std::vector<ascript::token> tokenizer::from_file(

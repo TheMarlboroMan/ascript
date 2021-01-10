@@ -129,10 +129,11 @@ void interpreter::interpret() {
 					}
 				}
 			break;
-			//TODO:
-			//case run_context::signals::sigstop:
-			//	stacks.clear();
-			//break;
+			case run_context::signals::sigexit:
+
+				stacks.clear();
+				return;
+			break;
 			case run_context::signals::sigyield:
 
 				yield_signal=true;

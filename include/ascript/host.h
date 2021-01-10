@@ -15,6 +15,9 @@ class host {
 	//!Must return true if the symbol is defined in the host.
 	virtual bool                host_has(const std::string) const =0;
 
+	//!Must deletel the symbol is defined in the host, throw if not.
+	virtual void                host_delete(const std::string) =0;
+
 	//!Must return the symbol defined in the host or throw a host_error if the
 	//!symbol does not exist..
 	virtual variable            host_get(const std::string) const =0;

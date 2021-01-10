@@ -13,46 +13,48 @@ struct token {
 		val_bool,
 		val_int,
 		val_double,
-		fn_is_equal, //done
-		fn_is_greater_than, //done
-		fn_is_lesser_than, //done
-		fn_add, //done
-		fn_substract, //done
-		fn_is_int, //done
+		fn_is_equal,
+		fn_is_greater_than,
+		fn_is_lesser_than,
+		fn_add,
+		fn_substract,
+		fn_is_int,
 		fn_is_bool,//done
-		fn_is_double, //done
-		fn_is_string, //done
-		fn_host_has, //done
-		fn_host_get, //done
-		fn_host_query, //done
-		pr_host_set, //done
-		pr_host_add, //done
-		pr_host_do, //done
-		pr_out, //done
-		pr_fail, //done
-		kw_call, //done
-		kw_not, //done
-		kw_if, //done
-		kw_elseif, //done
-		kw_else, //done
-		kw_endif, //done
-		kw_loop, //done
-		kw_break, //done
-		kw_endloop, //done
-		kw_yield, //done
-		kw_return, //done
-		kw_let, //done
-		kw_be, //done
-		kw_set, //done
-		kw_to, //done
+		fn_is_double,
+		fn_is_string,
+		fn_host_has,
+		fn_host_get,
+		fn_host_query,
+		pr_host_delete,
+		pr_host_set,
+		pr_host_add,
+		pr_host_do,
+		pr_out,
+		pr_fail,
+		kw_call,
+		kw_not,
+		kw_if,
+		kw_elseif,
+		kw_else,
+		kw_endif,
+		kw_loop,
+		kw_break,
+		kw_endloop,
+		kw_yield,
+		kw_return,
+		kw_exit,
+		kw_let,
+		kw_be,
+		kw_set,
+		kw_to,
 		kw_integer,
 		kw_string,
 		kw_bool,
 		kw_double,
 		kw_anytype,
 		kw_as,
-		kw_beginfunction, //done
-		kw_endfunction, //done
+		kw_beginfunction,
+		kw_endfunction,
 		semicolon,
 		comma,
 		open_bracket,

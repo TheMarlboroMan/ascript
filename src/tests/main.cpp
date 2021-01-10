@@ -13,6 +13,16 @@ class script_host:
 
 	bool                host_has(const std::string _symbol) const {return symbol_table.count(_symbol);}
 
+	void                host_delete(const std::string _symbol) {
+
+		if(!symbol_table.count(_symbol)) {
+
+			throw ascript::host_error(_symbol+" -> host_delete -> symbol not defined");
+		}
+
+		symbol_table.erase(_symbol);
+	}
+
 	ascript::variable   host_get(const std::string _symbol) const {
 
 		if(!symbol_table.count(_symbol)) {
@@ -111,7 +121,11 @@ int main(
 
 				if(in=="done") {
 
-					sh.symbol_table.insert(std::make_pair("exit", 33));
+					sh.symbol_table.insert(std::make_pair("done", true));
+				}
+				else if(in=="exit") {
+
+					sh.symbol_table.insert(std::make_pair("exit", true));
 				}
 
 				i.resume();
