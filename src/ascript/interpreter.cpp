@@ -31,6 +31,10 @@ void interpreter::run(
 
 	current_stack=&stacks.back();
 	current_stack->context.symbol_table=symbol_table;
+
+	break_signal=false;
+	yield_signal=false;
+
 	interpret();
 }
 
@@ -47,16 +51,46 @@ void interpreter::resume() {
 
 void interpreter::interpret() {
 
-	bool breaking=false;
+	while(stacks.size()) {
 
-	//This methods runs a single stack.
-	while(!breaking && stacks.size()) {
-
-		current_stack->context.reset();
 		const auto& current_block=(current_stack->current_function->blocks[current_stack->block_index]);
-		const auto& instruction=current_block.instructions[current_stack->instruction_index];
+//std::cout<<" >> ["<<stacks.size()<<"] "<<current_stack->current_function->name<<":"<<current_stack->block_index<<":"<<current_stack->instruction_index<<" / "<<current_block.instructions.size()<<std::endl;
 
-//std::cout<<" >> "<<current_stack->current_function->name<<":"<<current_stack->block_index<<":"<<current_stack->instruction_index<<" -> "<<*instruction<<std::endl;
+		if(break_signal) {
+
+			if(current_block.type==block::types::loop) {
+
+				break_signal=false;
+			}
+
+			pop_stack(true, current_block.instructions.back()->line_number);
+			continue;
+		}
+
+		//There's a possibility that the block is over at the beginning of the
+		//loop if we close two blocks like endloop; endif; or if we reenter
+		//at the end of a block after yielding. That's why we check for the end 
+		//here.
+
+		std::size_t total_instructions=current_block.instructions.size();
+		bool is_done=total_instructions <= (std::size_t)current_stack->instruction_index;
+
+		if(is_done) {
+
+			if(current_block.type==block::types::loop) {
+
+				current_stack->instruction_index=0;
+				continue;
+			}
+
+			pop_stack(false, current_block.instructions.back()->line_number);
+			continue; //Continue so we exit if the stacks are empty.
+		}
+
+		const auto& instruction=current_block.instructions[current_stack->instruction_index];
+		current_stack->context.reset();
+
+//std::cout<<*instruction<<std::endl;
 
 		++current_stack->instruction_index;
 
@@ -74,17 +108,35 @@ void interpreter::interpret() {
 			break;
 
 			case run_context::signals::sigbreak:
+
 				break_signal=true;
 			break;
 			case run_context::signals::sigreturn:
 
-				stacks.clear();
-				return;
+				while(true) {
+
+					auto func=current_stack->current_function;
+
+					pop_stack(false, instruction->line_number);
+					if(!stacks.size()) {
+						return;
+					}
+
+					//Did we change function???
+					if(current_stack->current_function != func) {
+
+						break;
+					}
+				}
 			break;
+			//TODO:
+			//case run_context::signals::sigstop:
+			//	stacks.clear();
+			//break;
 			case run_context::signals::sigyield:
 
 				yield_signal=true;
-				return; 
+				return;
 			break;
 
 			case run_context::signals::sigcall:{
@@ -118,34 +170,6 @@ void interpreter::interpret() {
 					current_stack->context.value.int_val
 				);
 			break;
-		}
-
-		if(yield_signal) {
-
-			return;
-		}
-
-		if(break_signal) {
-
-			if(current_block.type==block::types::loop) {
-
-				break_signal=false;
-			}
-
-			pop_stack(true, instruction->line_number);
-			return;
-		}
-
-		bool is_done=current_block.instructions.size()==(std::size_t)current_stack->instruction_index;
-
-		if(is_done && current_block.type==block::types::loop) {
-
-			current_stack->instruction_index=0;
-			continue;
-		}
-		else if(is_done) {
-
-			pop_stack(false, instruction->line_number);
 		}
 	}
 }

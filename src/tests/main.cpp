@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "ascript/tokenizer.h"
 #include "ascript/parser.h"
@@ -93,10 +94,29 @@ int main(
 //			std::cout<<s<<std::endl;
 		}
 
-		i.run(sh, "blah", {"lol", true});
-		i.run(sh, "meh", {});
+//		i.run(sh, "print_stuff", {"lol", true});
 
-		//TODO: Now make an interactive one to test "yield"
+		i.run(sh, "main", {});
+
+		while(true) {
+
+			if(i.is_finished()) {
+
+				break;
+			}
+			else {
+
+				std::string in;
+				std::getline(std::cin, in);
+
+				if(in=="done") {
+
+					sh.symbol_table.insert(std::make_pair("exit", 33));
+				}
+
+				i.resume();
+			}
+		}
 
 		return 0;
 	}

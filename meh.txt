@@ -1,22 +1,23 @@
-beginfunction blah [ something as string, meh as any];
+beginfunction print_stuff [ something as string, meh as any];
 
-	out ["i am blah: ", something, " , ", meh];
+	out ["i am print_stuff: ", something, " , ", meh];
 
 	if not host_has ["lol"];
 
 		host_add ["lol", 33];
-	endif;
 
-	#TODO: if I remove this instruction, shit explodes.
-	out ["leaving blah"];
+		out ["optional return"];
+		return;
+	endif;
 
 endfunction;
 
-beginfunction meh;
+beginfunction main;
+
+	out ["main is starting"];
 
 	let one be 1; 
 	let two be 2;
-	let d be 12.2;
 
 	if host_has ["lol"];
 		out ["there is lol"];
@@ -29,11 +30,11 @@ beginfunction meh;
 	let hvar be host_get ["var"];
 	out ["var is ", hvar];
 
-	out ["this is d ", d];
 
 	let strparam be host_get ["some_string"];
-	call [ blah, strparam, hvar ];
+	call [ print_stuff, strparam, hvar ];
 
+	let d be 12.2;
 	if is_double [d];
 		out ["is double"];
 	else;
@@ -46,6 +47,7 @@ beginfunction meh;
 		out ["sanity reigns"];
 	endif;
 
+	#A regular loop...
 	let looper be 1;
 	loop;
 
@@ -60,8 +62,27 @@ beginfunction meh;
 		set looper to add [looper, 1];
 	endloop;
 
+	out ["now we start the yield loop"];
+
+	#A yielding loop.
+	let yieldcounter be 0;
+	loop;
+
+		if not host_has ["exit"];
+
+			out ["declare exit in the host by typing 'done' to finish, yielded ", yieldcounter, " times"];
+			set yieldcounter to add [yieldcounter, 1];
+			yield;
+		else;
+
+			break;
+		endif;
+
+	endloop;
+
 	out ["bye ", looper, " and ", one, "!"];
 
+	#Totally not needed.
+	return;
+
 endfunction;
-
-
