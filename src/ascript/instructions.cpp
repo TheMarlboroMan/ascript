@@ -93,26 +93,12 @@ void instruction_out::run(
 	run_context& _ctx
 ) const {
 
-	//TODO There should be an out interface.
-	//TODO: and it would be really nice if we could use the logger, but we
-	//won't be able to :(. I guess, if we really really wanted to we could
-	//write an adapter.
-
-	//TODO: in the meantime. std::cout.
 	for(const auto& arg : solve(arguments, _ctx.symbol_table, line_number)) {
 
-		//The overloads are, so far, for debugging purposes so...
-		switch(arg.type) {
-			case variable::types::boolean: std::cout<<(arg.bool_val ? "true" : "false"); break;
-			case variable::types::integer: std::cout<<arg.int_val; break;
-			case variable::types::string: std::cout<<arg.str_val; break;
-			case variable::types::decimal: std::cout<<arg.double_val; break;
-			case variable::types::symbol: 
-				throw std::runtime_error("should never happen");
-		}
+		_ctx.out_facility->out(arg);
 	}
 
-	std::cout<<std::endl;
+	_ctx.out_facility->flush();
 }
 
 void instruction_fail::run(

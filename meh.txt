@@ -86,13 +86,11 @@ beginfunction main;
 
 	#TODO: We should be able to declare them inside the loop...
 	#this is a bug.
-	let has_done be false;
-	let has_exit be false;
 
 	loop;
 	
-		set has_done to host_has ["done"];
-		set has_exit to host_has ["exit"];
+		let has_done be host_has ["done"];
+		let has_exit be host_has ["exit"];
 
 		if is_equal [has_done, has_exit, false];
 

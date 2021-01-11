@@ -7,6 +7,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/run_context.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interpreter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/variable.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/stdout_out.cpp
 	PARENT_SCOPE
 )
 

@@ -8,25 +8,28 @@ using namespace ascript;
 
 void interpreter::run(
 	host& _host,
+	out_interface& _out_facility,
 	const std::string& _funcname, 
 	const std::vector<variable>& _arguments
 ) {
 
-	run(_host, *functions.at(_funcname), _arguments);
+	run(_host, _out_facility, *functions.at(_funcname), _arguments);
 }
 
 void interpreter::run(
 	host& _host,
+	out_interface& _out_facility,
 	const function& _function, 
 	const std::vector<variable>& _arguments
 ) {
 	current_host=&_host;
+	out_facility=&_out_facility;
 
 	auto symbol_table=prepare_symbol_table(_function, _arguments, 0);
 
 	//Start the first stack...
 	stacks.push_back(
-		{&_function, 0, 0, {current_host}}
+		{&_function, 0, 0, {current_host, out_facility}}
 	);
 
 	current_stack=&stacks.back();
@@ -34,6 +37,7 @@ void interpreter::run(
 
 	break_signal=false;
 	yield_signal=false;
+	failed_signal=false;
 
 	interpret();
 }
@@ -50,6 +54,8 @@ void interpreter::resume() {
 }
 
 void interpreter::interpret() {
+
+	try {
 
 	while(stacks.size()) {
 
@@ -77,13 +83,24 @@ void interpreter::interpret() {
 
 		if(is_done) {
 
+			//Popping and pushing the stack will refresh the symbol table.
 			if(current_block.type==block::types::loop) {
 
+				const auto stack_copy=*current_stack;
+
+				pop_stack(false, current_block.instructions.back()->line_number);
+				push_stack(
+					stack_copy.current_function,
+					stack_copy.block_index
+				);
+
 				current_stack->instruction_index=0;
-				continue;
+			}
+			else {
+
+				pop_stack(false, current_block.instructions.back()->line_number);
 			}
 
-			pop_stack(false, current_block.instructions.back()->line_number);
 			continue; //Continue so we exit if the stacks are empty.
 		}
 
@@ -184,6 +201,12 @@ void interpreter::interpret() {
 			break;
 		}
 	}
+	}
+	catch(std::exception &e) {
+
+		failed_signal=true;
+		throw;
+	}
 }
 
 void interpreter::push_stack(
@@ -194,7 +217,7 @@ void interpreter::push_stack(
 	auto exiting_table=current_stack->context.symbol_table;
 
 	stacks.push_back(
-		{_function, _stack_index, 0, {current_host}}
+		{_function, _stack_index, 0, {current_host, out_facility}}
 	);
 
 	current_stack=&stacks.back();
@@ -208,7 +231,7 @@ void interpreter::push_stack(
 ) {
 
 	stacks.push_back(
-		{_function, _stack_index, 0, {current_host}}
+		{_function, _stack_index, 0, {current_host, out_facility}}
 	);
 
 	current_stack=&stacks.back();
@@ -246,6 +269,21 @@ void interpreter::pop_stack(
 			symbol.second=exiting_table.at(symbol.first);
 		}
 	}
+}
+
+void interpreter::remove_function(
+	const std::string& _funcname
+) {
+
+	if(!functions.count(_funcname)) {
+
+		throw std::runtime_error(std::string{"function "}
+			+_funcname
+			+"does not exist"
+		);
+	}
+
+	functions.erase(_funcname);
 }
 
 void interpreter::add_function(

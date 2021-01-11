@@ -19,7 +19,6 @@ beginfunction returns_something [param as string];
 
 endfunction;
 
-#Example of recursion, does not really work.
 beginfunction chain [param as int, count as int];
 
 	if is_equal [count, 3];
@@ -35,7 +34,19 @@ beginfunction chain [param as int, count as int];
 
 endfunction;
 
-beginfunction main;
+beginfunction greeter;
+
+	out ["hello"];
+
+endfunction;
+
+beginfunction dumper [param as any];
+
+	out [param];
+
+endfunction;
+
+beginfunction short_main;
 
 	call ["returns_nothing", "my string"];
 	let result be call ["returns_something", "my string"];

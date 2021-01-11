@@ -31,13 +31,15 @@ add_library(tools SHARED IMPORTED)
 #Virtual library so we don't have to build again and again for all tests...
 add_library(applib STATIC ${SOURCE})
 set_target_properties(applib PROPERTIES OUTPUT_NAME applib)
-add_executable(script src/tests/main.cpp)
+add_executable(ascript src/tests/ascript.cpp)
+add_executable(interactive src/tests/interactive.cpp)
 add_executable(print_tokens src/tests/print_tokens.cpp)
 add_executable(print_code src/tests/print_code.cpp)
 
 set_target_properties(lm PROPERTIES IMPORTED_LOCATION /usr/local/lib/liblm.so)
 set_target_properties(tools PROPERTIES IMPORTED_LOCATION /usr/local/lib/libtools.so)
 
-target_link_libraries(script applib dfw lm tools stdc++fs)
+target_link_libraries(ascript applib dfw lm tools stdc++fs)
+target_link_libraries(interactive applib dfw lm tools stdc++fs)
 target_link_libraries(print_tokens applib dfw lm tools stdc++fs)
 target_link_libraries(print_code applib dfw lm tools stdc++fs)
