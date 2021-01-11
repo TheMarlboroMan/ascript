@@ -111,23 +111,34 @@ void interpreter::interpret() {
 
 				break_signal=true;
 			break;
-			case run_context::signals::sigreturn:
+			case run_context::signals::sigreturnval:
+			case run_context::signals::sigreturn:{
+
+				auto exiting_stack=*current_stack;
 
 				while(true) {
 
-					auto func=current_stack->current_function;
+					auto exiting_fn_block=current_stack->block_index;
 
 					pop_stack(false, instruction->line_number);
 					if(!stacks.size()) {
 						return;
 					}
 
-					//Did we change function???
-					if(current_stack->current_function != func) {
+					//Did we unwind the full function?
+					if(0==exiting_fn_block) {
+
+						//Are we returning to another function? If so, copy
+						//the returned value to the current stack...
+						if(exiting_stack.context.signal==run_context::signals::sigreturnval) {
+
+							current_stack->context.return_register=exiting_stack.context.return_register;
+						}
 
 						break;
 					}
 				}
+			}
 			break;
 			case run_context::signals::sigexit:
 

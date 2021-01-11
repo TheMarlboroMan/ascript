@@ -1,0 +1,49 @@
+beginfunction returns_nothing [param as string];
+
+	out ["returns_nothing with: ", param];
+	return;
+
+endfunction;
+
+beginfunction returns_something [param as string];
+
+	if is_equal [false, false];
+
+		out ["returns_something with: ", param];
+		return [param];
+
+	else;
+
+		return ["lol"];
+	endif;
+
+endfunction;
+
+#Example of recursion, does not really work.
+beginfunction chain [param as int, count as int];
+
+	if is_equal [count, 3];
+
+		return [param];
+	else;
+
+		set count to add [count, 1];
+		set param to add [param, 2];
+		set param to call ["chain", param, count];
+		return [param];
+	endif;
+
+endfunction;
+
+beginfunction main;
+
+	call ["returns_nothing", "my string"];
+	let result be call ["returns_something", "my string"];
+	out ["result is: ", result];
+
+	let intval be 0;
+	set intval to call ["chain", intval, 0];
+	out ["intval is: ", intval];
+	return;
+
+endfunction;

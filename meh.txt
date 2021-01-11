@@ -14,7 +14,7 @@ endfunction;
 
 beginfunction exiter [ message as string];
 
-	out ["exiting, will not return to parent context: ", message];
+	out ["exiting will not return to parent context: ", message];
 	exit;
 
 endfunction;

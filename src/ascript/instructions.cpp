@@ -58,16 +58,6 @@ instruction_function_call::instruction_function_call(
 	arguments{_arguments}
 {}
 
-instruction_declaration_static::instruction_declaration_static(
-	int _line_number,
-	const std::string& _identifier, 
-	const variable& _value
-):
-	instruction{_line_number},
-	identifier{_identifier},
-	value{_value}
-{}
-
 instruction_declaration_dynamic::instruction_declaration_dynamic(
 	int _line_number,
 	const std::string& _identifier, 
@@ -76,16 +66,6 @@ instruction_declaration_dynamic::instruction_declaration_dynamic(
 	instruction{_line_number},
 	identifier(_identifier),
 	function{std::move(_fn)}
-{}
-
-instruction_assignment_static::instruction_assignment_static(
-	int _line_number,
-	const std::string& _identifier, 
-	const variable& _value
-):
-	instruction{_line_number},
-	identifier{_identifier},
-	value{_value}
 {}
 
 instruction_assignment_dynamic::instruction_assignment_dynamic(
@@ -219,6 +199,43 @@ variable instruction_is_equal::evaluate(
 			return _var==first;
 		}
 	);
+}
+
+void instruction_generate_value::run(
+	run_context& _ctx
+) const {
+
+	_ctx.value=evaluate(_ctx);
+}
+
+variable instruction_generate_value::evaluate(
+	run_context& _ctx
+) const {
+
+	return solve(arguments[0], _ctx.symbol_table, line_number);
+}
+
+void instruction_copy_from_return_register::run(
+	run_context& _ctx
+) const {
+
+	_ctx.value=evaluate(_ctx);
+}
+
+variable instruction_copy_from_return_register::evaluate(
+	run_context& _ctx
+) const {
+
+	if(!_ctx.return_register.has_value()) {
+
+		error_builder::get()<<"expected return value from function call"
+		<<throw_err{line_number, throw_err::types::interpreter};
+	}
+
+	_ctx.value=*(_ctx.return_register);
+	_ctx.return_register.reset();
+
+	return _ctx.value;
 }
 
 void instruction_is_lesser_than::run(
@@ -498,18 +515,6 @@ void instruction_function_call::run(
 	_ctx.signal=run_context::signals::sigcall;
 }
 
-void instruction_declaration_static::run(
-	run_context& _ctx
-) const {
-
-	if(_ctx.symbol_table.count(identifier)) {
-
-		error_builder::get()<<"identifier already exists for declaration"<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	_ctx.symbol_table.insert(std::make_pair(identifier, value));
-}
-
 void instruction_declaration_dynamic::run(
 	run_context& _ctx
 ) const {
@@ -525,23 +530,6 @@ void instruction_declaration_dynamic::run(
 			function->evaluate(_ctx)
 		)
 	);
-}
-
-void instruction_assignment_static::run(
-	run_context& _ctx
-) const {
-
-	if(!_ctx.symbol_table.count(identifier)) {
-
-		error_builder::get()<<"identifier does not exist for assignment"<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	if(value.type != _ctx.symbol_table.at(identifier).type) {
-
-		error_builder::get()<<"type mismatch for assignment"<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	_ctx.symbol_table.at(identifier)=value;
 }
 
 void instruction_assignment_dynamic::run(
@@ -567,9 +555,17 @@ void instruction_return::run(
 	run_context& _ctx
 ) const {
 
-	//TODO: Maybe, if we return something we can store in the context as
-	//returned val.
-	_ctx.signal=run_context::signals::sigreturn;
+	if(returned_value) {
+
+		_ctx.signal=run_context::signals::sigreturnval;
+		_ctx.return_register=solve(*returned_value, _ctx.symbol_table, line_number);
+
+	}
+	else {
+
+		_ctx.signal=run_context::signals::sigreturn;
+		_ctx.return_register.reset();
+	}
 }
 
 void instruction_yield::run(
@@ -718,6 +714,24 @@ void instruction_is_equal::format_out(
 	_stream<<"]";
 }
 
+void instruction_generate_value::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"generate_value[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_copy_from_return_register::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"copy_from_return_register[]";
+}
+
 void instruction_is_greater_than::format_out(
 	std::ostream& _stream
 ) const {
@@ -845,6 +859,10 @@ void instruction_return::format_out(
 ) const {
 
 	_stream<<"return";
+	if(returned_value) {
+
+		_stream<<" "<<*returned_value;
+	}
 }
 
 void instruction_yield::format_out(
@@ -878,13 +896,6 @@ void instruction_function_call::format_out(
 	}
 }
 
-void instruction_declaration_static::format_out(
-	std::ostream& _stream
-) const {
-
-	_stream<<"variable '"<<identifier<<"' as "<<value;
-}
-
 void instruction_declaration_dynamic::format_out(
 	std::ostream& _stream
 ) const {
@@ -892,18 +903,11 @@ void instruction_declaration_dynamic::format_out(
 	_stream<<"variable '"<<identifier<<"' as call to "<<(*function);
 }
 
-void instruction_assignment_static::format_out(
-	std::ostream& _stream
-) const {
-
-	_stream<<"set variable '"<<identifier<<"' to "<<value;
-}
-
 void instruction_assignment_dynamic::format_out(
 	std::ostream& _stream
 ) const {
 
-	_stream<<"set variable '"<<identifier<<"' to call to "<<(*function);
+	_stream<<"set variable '"<<identifier<<"' to "<<(*function);
 }
 
 void instruction_conditional_branch::format_out(

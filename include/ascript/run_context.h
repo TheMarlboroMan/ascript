@@ -4,12 +4,13 @@
 #include "ascript/variable.h"
 
 #include <map>
+#include <optional>
 
 namespace ascript {
 
 struct run_context {
 
-	enum class signals {none, sigbreak, sigreturn, sigyield, sigjump, sigfail, sigcall, sigexit};
+	enum class signals {none, sigbreak, sigreturn, sigreturnval, sigyield, sigjump, sigfail, sigcall, sigexit};
 
 	                                run_context(host*);
 
@@ -20,6 +21,7 @@ struct run_context {
 	host *                          host_ptr{nullptr};
 	signals                         signal{signals::none};
 	variable                        value{false}; //A value produced by some function or the index of a block.
+	std::optional<variable>         return_register; //!The register where returned values are stored.
 	std::vector<variable>           arguments; //Vector of arguments to be passed to a call from sigcall.
 
 };

@@ -33,11 +33,10 @@ class parser {
 	//!Reading bracket delimited function parameters.
 	std::vector<parameter>   parameters_mode();
 
-	//!Reading a variable declaration.
-	void                    variable_declaration_mode(int);
+	//!Reading a variable declaration./ assignment
+	enum class variable_modes {declaration, assignment};
+	void                    variable_manipulation_mode(int, variable_modes);
 
-	//!Reading variable assignment.
-	void                    variable_assignment_mode(int);
 
 	//!Builds a function instruction.
 	std::unique_ptr<instruction_function> build_function(const token&);

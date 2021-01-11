@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <ostream>
+#include <optional>
 
 namespace ascript {
 
@@ -93,7 +94,28 @@ struct instruction_host_do:instruction_procedure {
 	void                    run(run_context&)const;
 };
 
-//instruction to compare the first parameter with the rest
+//Functions.
+
+//!Instruction that generates a value, for assignment purposes. It looks like
+//!a function, but it really is not.
+struct instruction_generate_value:instruction_function{
+
+                            instruction_generate_value(int _line_number):instruction_function{_line_number}{}
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
+};
+
+//!Instruction to handle return values.
+struct instruction_copy_from_return_register:instruction_function{
+
+                            instruction_copy_from_return_register(int _line_number):instruction_function{_line_number}{}
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
+};
+
+//!instruction to compare the first parameter with the rest
 struct instruction_is_equal:instruction_function {
 
                             instruction_is_equal(int _line_number):instruction_function{_line_number}{}
@@ -102,7 +124,7 @@ struct instruction_is_equal:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
-//instruction to compare the first parameter with the rest
+//!instruction to compare the first parameter with the rest
 struct instruction_is_lesser_than:instruction_function {
 
                             instruction_is_lesser_than(int _line_number):instruction_function{_line_number}{}
@@ -111,7 +133,7 @@ struct instruction_is_lesser_than:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
-//instruction to compare the first parameter with the rest
+//!instruction to compare the first parameter with the rest
 struct instruction_is_greater_than:instruction_function {
 
                             instruction_is_greater_than(int _line_number):instruction_function{_line_number}{}
@@ -120,7 +142,7 @@ struct instruction_is_greater_than:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
-//instruction to add n numeric parameters
+//!instruction to add n numeric parameters
 struct instruction_add:instruction_function {
 
                             instruction_add(int _line_number):instruction_function{_line_number}{}
@@ -129,7 +151,7 @@ struct instruction_add:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
-//instruction to subsract n numeric parameters
+//!instruction to subsract n numeric parameters
 struct instruction_substract:instruction_function {
 
                             instruction_substract(int _line_number):instruction_function{_line_number}{}
@@ -197,7 +219,7 @@ struct instruction_host_query:instruction_function {
 ////////////////////////////////////////////////////////////////////////////////
 // Language instructions.
 
-//instruction to run a function call [fnname, params...];
+//!instruction to run a function call [fnname, params...];
 struct instruction_function_call:instruction {
 
 	                        instruction_function_call(int, const variable&, const std::vector<variable>&);
@@ -207,18 +229,8 @@ struct instruction_function_call:instruction {
 	void                    run(run_context&)const;
 };
 
-//instruction to declare a variable with a static value "let x be y;"
-struct instruction_declaration_static:instruction {
-
-	                        instruction_declaration_static(int, const std::string&, const variable&);
-	std::string             identifier;
-	variable                value;
-	void                    format_out(std::ostream&) const;
-	void                    run(run_context&)const;
-};
-
-//instruction to declare a variable with a dynamic value derived from a 
-//function "let x be lala [a, b, c];"
+//!instruction to declare a variable with a dynamic value derived from a 
+//!function "let x be lala [a, b, c];"
 struct instruction_declaration_dynamic:instruction {
 
 	                        instruction_declaration_dynamic(int, const std::string&, std::unique_ptr<instruction_function>&);
@@ -228,18 +240,9 @@ struct instruction_declaration_dynamic:instruction {
 	void                    run(run_context&)const;
 };
 
-//instruction to assign a variable with a static value "set x to y;"
-struct instruction_assignment_static:instruction {
-
-	                        instruction_assignment_static(int, const std::string&, const variable&);
-	std::string             identifier;
-	variable                value;
-	void                    format_out(std::ostream&) const;
-	void                    run(run_context&)const;
-};
-
-//instruction to assign a variable with a dynamic value derived from a 
-//function "set x to lala [a, b, c];"
+//!instruction to assign a variable with a dynamic value derived from a 
+//!function "set x to lala [a, b, c];". Also for static values, actually,
+//!through value generator functions "set x to y;".
 struct instruction_assignment_dynamic:instruction {
 
 	                        instruction_assignment_dynamic(int, const std::string&, std::unique_ptr<instruction_function>&);
@@ -249,15 +252,17 @@ struct instruction_assignment_dynamic:instruction {
 	void                    run(run_context&)const;
 };
 
-//instruction to exit a script.
+//!instruction to exit a script.
 struct instruction_return:instruction {
 
                             instruction_return(int _line_number):instruction{_line_number}{}
+                            instruction_return(int _line_number, variable _var):instruction{_line_number}, returned_value{_var}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	std::optional<variable> returned_value;
 };
 
-//instruction to yield cycles to the host.
+//!instruction to yield cycles to the host.
 struct instruction_yield:instruction {
 
                             instruction_yield(int _line_number):instruction{_line_number}{}
@@ -265,7 +270,7 @@ struct instruction_yield:instruction {
 	void                    run(run_context&)const;
 };
 
-//instruction to break of loop.
+//!instruction to break of loop.
 struct instruction_break:instruction {
 
 	                        instruction_break(int _line_number):instruction{_line_number}{}
@@ -281,8 +286,8 @@ struct instruction_exit:instruction {
 	void                    run(run_context&)const;
 };
 
-//each branch of an if is represented by one of these: evaluation function
-//and index of the target block to execute.
+//!each branch of an if is represented by one of these: evaluation function
+//!and index of the target block to execute.
 struct conditional_path {
 
 	std::unique_ptr<instruction_function>   function;
@@ -311,21 +316,21 @@ struct instruction_loop:instruction {
 	void                    run(run_context&)const;
 };
 
-//!A block of instructions, looped or linear.
+//!a block of instructions, looped or linear.
 struct block {
 
 	enum class types {linear, loop}             type;
 	std::vector<std::unique_ptr<instruction>>   instructions;
 };
 
-//!A parameter definition, which is a name and a type.
+//!a parameter definition, which is a name and a type.
 struct parameter {
 
 	std::string                                 name;
 	enum class types{integer, decimal, boolean, string, any} type;
 };
 
-//!A script definition. A script is made up of a list of blocks, whose 
+//!a script definition. A script is made up of a list of blocks, whose 
 //!first is the main one. Plus a list of argument names that must be inserted
 //!on the table.
 struct function {

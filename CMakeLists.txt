@@ -32,8 +32,12 @@ add_library(tools SHARED IMPORTED)
 add_library(applib STATIC ${SOURCE})
 set_target_properties(applib PROPERTIES OUTPUT_NAME applib)
 add_executable(script src/tests/main.cpp)
+add_executable(print_tokens src/tests/print_tokens.cpp)
+add_executable(print_code src/tests/print_code.cpp)
 
 set_target_properties(lm PROPERTIES IMPORTED_LOCATION /usr/local/lib/liblm.so)
 set_target_properties(tools PROPERTIES IMPORTED_LOCATION /usr/local/lib/libtools.so)
 
 target_link_libraries(script applib dfw lm tools stdc++fs)
+target_link_libraries(print_tokens applib dfw lm tools stdc++fs)
+target_link_libraries(print_code applib dfw lm tools stdc++fs)
