@@ -14,7 +14,6 @@ Short for annoying script. An annoying script language...
 
 ##TODO:
 
-- Build and install library!!!
 - Cleanup arguments / parameters name, they should not be interchangeable in a readable codebase.
 - Check TODOs.
 - Document classes.
