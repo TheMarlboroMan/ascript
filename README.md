@@ -16,10 +16,15 @@ Short for annoying script. An annoying script language...
 
 - Cleanup arguments / parameters name, they should not be interchangeable in a readable codebase.
 - Check TODOs.
+- As an interesting exercise, try separating "variable" into "type", which would have subtypes for int, bool and such.
+- Study homogeneous arrays, with a syntax like let crap be {1,2,3}; and then array_size[crap], array_get[crap, 1], array_set[crap, 2, 33], and so on.
+- Study structures (symbol tables on themselves, custom types). they would be... interesting, let crap be packed type [member:value, member:value, member:value];
 - Document classes.
 - Write small manual.
 - Write tests of all the language features so we can know what to expect.
 - Do a char by char tokenizer, the one we have has slight bugs.
+- Interpreters could get a hold of the final return value of a function, if any.
+	- Sure, if not... what do they return?????
 
 ##manual
 

@@ -5,8 +5,17 @@
 
 namespace ascript {
 
+//!Tokens derived from the first pass through a program file. Each word or
+//!meaningful symbol is translated to one of these.
+/**
+*Certain tokens might not only represent an idea (such as "open parameters") but
+*also a value (e.g. a literal string contains the idea of being a literal 
+*string, but also the string itself. These are represented through dedicated
+*(if likely unneficient) members.
+*/
 struct token {
 
+	//!Token types.
 	enum class types {
 		identifier,
 		val_string,
@@ -61,14 +70,17 @@ struct token {
 		close_bracket
 	};
 
-	types       type;
-	std::string str_val;
-	int         int_val{0};
-	double      double_val{0.};
-	bool        bool_val{false};
-	int         line_number{0};
+	types       type; //!< Current token type.
+	std::string str_val; //!< String value, if any.
+	int         int_val{0}; //!< Integer value, if any.
+	double      double_val{0.}; //!< Double value, if any.
+	bool        bool_val{false}; //!< Boolean value, if any.
+	int         line_number{0}; //!< Stores the line where the word originating the token was.
 };
 
+//!Converts a token type to a readable string representation.
 std::string type_to_str(token::types);
+
+//!output overload for a token, for debug purposes.
 std::ostream& operator<<(std::ostream&, const token&);
 }

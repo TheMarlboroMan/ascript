@@ -86,6 +86,8 @@ void parser::instruction_mode(
 
 				std::optional<variable> returnval;
 
+				//Return might or not might return a value. I wonder if I should
+				//use different keywords, like "return [3]" and "done".
 				if(peek().type==token::types::open_bracket) {
 
 					auto args=arguments_mode();
@@ -149,6 +151,8 @@ void parser::instruction_mode(
 			case token::types::kw_loop:
 				loop_mode(token.line_number, _block_index);
 			break;
+			//As can be seen, functions are just not acceptable in this mode and
+			//can only be used to assign or recall values.
 			default:
 
 				error_builder::get()<<"unexpected '"
@@ -195,6 +199,9 @@ void parser::conditional_branch_mode(
 
 	//if [not] fn [arg, arg, arg];
 
+	//This lambda expresses the intention of adding a new block to an if branch
+	//statement. It will just add the if instruction with its evaluation 
+	//function and create the block where the following instructions will go.
 	auto add=[this](instruction_conditional_branch& _ifbr) -> int {
 
 		bool negated=false;
@@ -224,12 +231,18 @@ void parser::conditional_branch_mode(
 
 	//Now we run the linear mode with this next block... We store the last 
 	//breaking token so we can know if we need to look for more branches.
+	//Last line will store the last line of a branch, signaling where the next
+	//starts.
 
 	token::types last_type=token::types::kw_if;
 	int last_line=0;
 
 	while(true) {
 
+		//TODO it would be clear if this was a lambda itself to be invoked
+		//after each if below.
+
+		//Read instructions into the current branch...
 		instruction_mode(
 			[&last_type, &last_line, this](const token& _tok) -> bool {
 				
@@ -248,10 +261,12 @@ void parser::conditional_branch_mode(
 			"unexpected end of file, expected else, elseif or endif"
 		);
 
+		//Is there an elseif? add instruction and go back to reading instructions into this new branch.
 		if(last_type==token::types::kw_elseif) {
 
 			next_block_index=add(*ifbr);
 		}
+		//Is there an else? These are represented as "functionless" branches.   Add and come back again to read instructions into it.
 		else if(last_type==token::types::kw_else) {
 
 			add_block(block::types::linear, current_function);
@@ -259,6 +274,7 @@ void parser::conditional_branch_mode(
 			ifbr->branches.push_back({nullptr, next_block_index, last_line, false});
 			expect(token::types::semicolon, "else must end with a semicolon");
 		}
+		//Signals the end of the if statements.
 		else if(last_type==token::types::kw_endif) {
 
 			expect(token::types::semicolon, "endif must end with a semicolon");
@@ -322,7 +338,7 @@ std::vector<variable> parser::arguments_mode(
 	}
 }
 
-//!Retrieves the parameters from the node previous to [ to ].
+//!Retrieves the parameters from the node previous from [ to ].
 std::vector<parameter> parser::parameters_mode(
 ) {
 
@@ -375,7 +391,7 @@ void parser::variable_manipulation_mode(
 	int _block_index,
 	variable_modes _mode
 ) {
-	//"let" has been already consumed so... identifier + be + value + semicolon...
+	//"let/set" has been already consumed so... identifier + be + value + semicolon...
 	auto identifier=expect(token::types::identifier, "let must be followed by an identifier");
 
 	switch(_mode) {
@@ -692,29 +708,3 @@ void parser::call_mode(
 	);
 }
 
-/*
-			switch(_mode) {
-
-				case variable_modes::declaration:
-					current_function.blocks[_block_index].instructions.emplace_back(
-						new instruction_declaration_static(
-							value.line_number, 
-							identifier.str_val, 
-							build_variable(value)
-						)
-					);
-				break;
-				case variable_modes::assignment:
-
-					current_function.blocks[_block_index].instructions.emplace_back(
-						new instruction_assignment_static(
-							value.line_number, 
-							identifier.str_val, 
-							build_variable(value)
-						)
-					);
-				break;
-			}
-			expect(token::types::semicolon, "variable declaration/assignment must be finished with a semicolon");
-			return;
-*/

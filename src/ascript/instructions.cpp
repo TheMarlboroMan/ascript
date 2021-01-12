@@ -48,6 +48,9 @@ std::vector<variable> ascript::solve(
 	return result;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// specific constructors.
+
 instruction_function_call::instruction_function_call(
 	int _line_number, 
 	const variable& _function_name, 
@@ -113,7 +116,7 @@ void instruction_fail::run(
 		ss<<arg;
 	}
 
-	//The error message is passed to the context.
+	//The error message is passed to the context, where it will be added to the exception message.
 	_ctx.value={ss.str()};
 }
 
@@ -139,6 +142,8 @@ void instruction_host_add::run(
 	run_context& _ctx
 ) const {
 
+	//Arg count was checked at parse time.
+
 	auto solved=solve(arguments, _ctx.symbol_table, line_number);
 	const auto symbol=solved.at(0);
 	const auto value=solved.at(1);
@@ -149,6 +154,8 @@ void instruction_host_add::run(
 void instruction_host_delete::run(
 	run_context& _ctx
 ) const {
+
+	//Arg count was checked at parse time.
 
 	auto solved=solve(arguments, _ctx.symbol_table, line_number);
 	const auto symbol=solved.at(0);

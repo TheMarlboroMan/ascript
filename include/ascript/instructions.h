@@ -11,46 +11,61 @@
 
 namespace ascript {
 
-//TODO: Perhaps these should be in their own namespace.
-
 struct run_context;
 
-//base class for all script instructions.
+//!base class for all script instructions.
+/**
+*Each action the script language can perform is represented as an instruction
+*of a different type, all sharing a common ancestor. Instructions run oblivious 
+*of the any interpreter and the interpreter itself does not try to typecast 
+*them at all. As a result, all instructions are supposed to be able to perform
+*whatever action or signal through a common "run_context" structure 
+*/
 struct instruction {
 
 	                        instruction(int _line_number): line_number{_line_number} {}
 	virtual                 ~instruction(){}
 
-	int                     line_number;
+	int                     line_number; //!Stores the line number.
 
 	//!For debug purposes, all instructions know how to print themselves.
 	virtual void            format_out(std::ostream&) const=0;
+
+	//!Executes the instruction.
+/**
+* Instructions receive a run_context to interact with the interpreter.
+* Everything an instruction can do is limited to what can be expressed in the 
+* run_context object.
+*/
 	virtual void            run(run_context&)const=0;
 };
 
-//Base class for all instructions that will execute something without returning
-//anything.
+//!Base class for all instructions that will execute something without returning
+//!anything.
 struct instruction_procedure:instruction {
 
                             instruction_procedure(int _line_number):instruction{_line_number}{}
 	virtual                 ~instruction_procedure(){}
+	//!Stores procedure arguments.
 	std::vector<variable>   arguments;
 };
 
-//Base class for all instructions that will generate a value, stuff like
-//is_equal, host_query...
+//!Base class for all instructions that will generate a value, stuff like
+//!is_equal, host_query...
 struct instruction_function:instruction {
 
                             instruction_function(int _line_number):instruction{_line_number}{}
 	virtual                 ~instruction_function(){}
+	//!All functions must be able to generate their value through a call to evaluate.
 	virtual variable        evaluate(run_context&) const=0;
+	//!Stores function arguments.
 	std::vector<variable>   arguments;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // Derived classes
 
-//instruction to print something out.
+//!instruction to print something out.
 struct instruction_out:instruction_procedure {
 
                             instruction_out(int _line_number):instruction_procedure{_line_number}{}
@@ -58,7 +73,7 @@ struct instruction_out:instruction_procedure {
 	void                    run(run_context&)const;
 };
 
-//instruction to stop execution of script with error
+//!instruction to stop execution of script with error
 struct instruction_fail:instruction_procedure {
 
                             instruction_fail(int _line_number):instruction_procedure{_line_number}{}
@@ -66,6 +81,7 @@ struct instruction_fail:instruction_procedure {
 	void                    run(run_context&)const;
 };
 
+//!instruction to set a value in the host.
 struct instruction_host_set:instruction_procedure {
 
                             instruction_host_set(int _line_number):instruction_procedure{_line_number}{}
@@ -73,6 +89,7 @@ struct instruction_host_set:instruction_procedure {
 	void                    run(run_context&)const;
 };
 
+//!instruction to create a new value in the host.
 struct instruction_host_add:instruction_procedure {
 
                             instruction_host_add(int _line_number):instruction_procedure{_line_number}{}
@@ -80,6 +97,7 @@ struct instruction_host_add:instruction_procedure {
 	void                    run(run_context&)const;
 };
 
+//!instruction to delete a value in the host.
 struct instruction_host_delete:instruction_procedure {
 
                             instruction_host_delete(int _line_number):instruction_procedure{_line_number}{}
@@ -87,6 +105,7 @@ struct instruction_host_delete:instruction_procedure {
 	void                    run(run_context&)const;
 };
 
+//!instruction to ask the host to perform a complex action.
 struct instruction_host_do:instruction_procedure {
 
                             instruction_host_do(int _line_number):instruction_procedure{_line_number}{}
@@ -106,7 +125,8 @@ struct instruction_generate_value:instruction_function{
 	variable                evaluate(run_context&) const;
 };
 
-//!Instruction to handle return values.
+//!Instruction to handle return values. Of internal use only, has no use for
+//!end users.
 struct instruction_copy_from_return_register:instruction_function{
 
                             instruction_copy_from_return_register(int _line_number):instruction_function{_line_number}{}
@@ -115,7 +135,7 @@ struct instruction_copy_from_return_register:instruction_function{
 	variable                evaluate(run_context&) const;
 };
 
-//!instruction to compare the first parameter with the rest
+//!instruction to compare the first parameter with the rest (for equality).
 struct instruction_is_equal:instruction_function {
 
                             instruction_is_equal(int _line_number):instruction_function{_line_number}{}
@@ -124,7 +144,8 @@ struct instruction_is_equal:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
-//!instruction to compare the first parameter with the rest
+//!instruction to compare the first parameter with the rest (returns true when 
+//!the first parameter is less than the others).
 struct instruction_is_lesser_than:instruction_function {
 
                             instruction_is_lesser_than(int _line_number):instruction_function{_line_number}{}
@@ -133,7 +154,8 @@ struct instruction_is_lesser_than:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
-//!instruction to compare the first parameter with the rest
+//!instruction to compare the first parameter with the rest (returns true when
+//!the first parameter is greater than the others).
 struct instruction_is_greater_than:instruction_function {
 
                             instruction_is_greater_than(int _line_number):instruction_function{_line_number}{}
@@ -160,6 +182,7 @@ struct instruction_substract:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!instruction to ask a host if it holds a symbol on its table.
 struct instruction_host_has:instruction_function {
 
                             instruction_host_has(int _line_number):instruction_function{_line_number}{}
@@ -168,6 +191,7 @@ struct instruction_host_has:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!returns true if all of the parameters are of integer type.
 struct instruction_is_int:instruction_function {
 
                             instruction_is_int(int _line_number):instruction_function{_line_number}{}
@@ -176,6 +200,7 @@ struct instruction_is_int:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!returns true if all of the parameters are of bool type.
 struct instruction_is_bool:instruction_function {
 
                             instruction_is_bool(int _line_number):instruction_function{_line_number}{}
@@ -184,6 +209,7 @@ struct instruction_is_bool:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!returns true if all of the parameters are of double type.
 struct instruction_is_double:instruction_function {
 
                             instruction_is_double(int _line_number):instruction_function{_line_number}{}
@@ -192,6 +218,7 @@ struct instruction_is_double:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!returns true if all of the parameters are of string type.
 struct instruction_is_string:instruction_function {
 
                             instruction_is_string(int _line_number):instruction_function{_line_number}{}
@@ -200,6 +227,7 @@ struct instruction_is_string:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!instruction to return a value from the host's symbol table.
 struct instruction_host_get:instruction_function {
 
                             instruction_host_get(int _line_number):instruction_function{_line_number}{}
@@ -208,6 +236,7 @@ struct instruction_host_get:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!instruction to ask the host to perform a calculation and return its result.
 struct instruction_host_query:instruction_function {
 
                             instruction_host_query(int _line_number):instruction_function{_line_number}{}
@@ -229,8 +258,9 @@ struct instruction_function_call:instruction {
 	void                    run(run_context&)const;
 };
 
-//!instruction to declare a variable with a dynamic value derived from a 
-//!function "let x be lala [a, b, c];"
+//!instruction to declare a variable. The dynamic part comes from a time where
+//!there was a type for static declarations (let a be 33) and dynamic 
+//!declarations (let a be fn [param]);
 struct instruction_declaration_dynamic:instruction {
 
 	                        instruction_declaration_dynamic(int, const std::string&, std::unique_ptr<instruction_function>&);
@@ -240,9 +270,7 @@ struct instruction_declaration_dynamic:instruction {
 	void                    run(run_context&)const;
 };
 
-//!instruction to assign a variable with a dynamic value derived from a 
-//!function "set x to lala [a, b, c];". Also for static values, actually,
-//!through value generator functions "set x to y;".
+//!instruction to assign a variable.
 struct instruction_assignment_dynamic:instruction {
 
 	                        instruction_assignment_dynamic(int, const std::string&, std::unique_ptr<instruction_function>&);
@@ -252,17 +280,19 @@ struct instruction_assignment_dynamic:instruction {
 	void                    run(run_context&)const;
 };
 
-//!instruction to exit a script.
+//!instruction to return from a function, optionally with a value.
 struct instruction_return:instruction {
 
                             instruction_return(int _line_number):instruction{_line_number}{}
                             instruction_return(int _line_number, variable _var):instruction{_line_number}, returned_value{_var}{}
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	//!optional returned value.
 	std::optional<variable> returned_value;
 };
 
-//!instruction to yield cycles to the host.
+//!instruction to yield to the host. The script will remain stopped until 
+//!the interpreter is asked to resume.
 struct instruction_yield:instruction {
 
                             instruction_yield(int _line_number):instruction{_line_number}{}
@@ -270,7 +300,7 @@ struct instruction_yield:instruction {
 	void                    run(run_context&)const;
 };
 
-//!instruction to break of loop.
+//!instruction to break of a loop.
 struct instruction_break:instruction {
 
 	                        instruction_break(int _line_number):instruction{_line_number}{}
@@ -340,13 +370,26 @@ struct function {
 	std::vector<parameter>                      parameters;
 };
 
+//!Returns a vector of variables from the given vector of variables, resolving
+//!any symbols.
 std::vector<variable>   solve(const std::vector<variable>&, const std::map<std::string, variable>&, int);
+
+//!returns a variable from the given variable, resolving it if it's a symbol.
 variable                solve(const variable&, const std::map<std::string, variable>&, int);
 
+//!output stream operator for an instruction, for debug purposes.
 std::ostream& operator<<(std::ostream&, const instruction&);
+
+//!output stream operator for a conditional path, for debug purposes.
 std::ostream& operator<<(std::ostream&, const conditional_path&);
+
+//!output stream operator for a block, for debug purposes.
 std::ostream& operator<<(std::ostream&, const block&);
+
+//!output stream operator for a parameter, for debug purposes.
 std::ostream& operator<<(std::ostream&, const parameter&);
+
+//!output stream operator for a function, for debug purposes.
 std::ostream& operator<<(std::ostream&, const function&);
 
 

@@ -5,9 +5,12 @@
 
 namespace ascript {
 
+//!convenience implementation of the out_interface that uses std::out.
 class stdout_out:public out_interface {
 
+	//!out implementation.
 	virtual void            out(const variable&);
+	//!flush implementation.
 	virtual void            flush();
 };
 

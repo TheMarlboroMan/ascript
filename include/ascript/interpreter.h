@@ -10,16 +10,33 @@
 namespace ascript {
 
 //!This is a stack... the interpreter keeps a list of these 
+/**
+* Each stack corresponds with a block, keeping track of the function the block
+* belongs to, the block index (in the blocks vector) and the next instruction
+* index to be executed. Of course, there's also the context, which contains 
+* symbol tables and exchange values.
+**/
 struct stack {
 
+	//!current stack function.
 	const function *                current_function{nullptr};
+	//!index of the block this stack corresponds to.
 	int                             block_index,
+	//!index of the next instruction to be executed.
 	                                instruction_index;
+	//!data context.
 	run_context                     context;
 };
 
-//!A function runner. Runs a single function at a time.
-
+//!The interpreter.
+/**
+* The interpreter is the outmost part of ascript. Client code spawns a 
+* interprer and asks it to run any number of functions. After being asked to
+* run a function, an interpreter can be in any of three states: finished 
+* (the function executed correctly), yielding (the script yields control back
+* to the outmost layer) or error (there was an error in the execution).
+* 
+*/
 class interpreter {
 
 	public:
@@ -30,7 +47,7 @@ class interpreter {
 	//!Runs a named function that should have been added before.
 	void                run(host&, out_interface&, const std::string&, const std::vector<variable>&);
 
-	//!Returns true if the function has finished executing (only makes sense if
+	//!Returns true if the function has finished executing correctly.
 	//!the function yielded.
 	bool                is_finished() const {return !is_failed() && stacks.size()==0;}
 
@@ -58,21 +75,33 @@ class interpreter {
 
 	private:
 
+	//!Main loop function. There are no recursive calls to this function.
 	void                interpret();
+	//!Prepares a symbol table for a function call to be called (makes parameters available).
 	std::map<std::string, variable> prepare_symbol_table(const function&, const std::vector<variable>&, int);
+	//!Pushes a new stack.
 	void                push_stack(const function *, int);
+	//!Pushes a new stack with the given symbol table.
 	void                push_stack(const function *, int, std::map<std::string, variable>&);
+	//!Removes the topmost stack.
 	void                pop_stack(bool, int);
 
-	//!Functions are implied to be owned by some other thing.
+	//!Functions that this script can use. Functions are implied to be owned by some other thing.
 	std::map<std::string, const function *> functions;
+	//!Current host pointer.
 	host *              current_host{nullptr};
+	//!Current output facility pointer.
 	out_interface *     out_facility{nullptr};
+	//!Stacks. Read the stack description.
 	std::vector<stack>  stacks;
+	//!Current stack (unsurprisingly, the topmost one).
 	stack *             current_stack{nullptr};
+	//!Signal reserved for breaking out of a loop.
 	bool                break_signal{false},
+	//!Signal reserved to indicate that the script yields.
 	                    yield_signal{false},
-	                    failed_signal{false}; //Raised only when an exception is thrown.
+	//!Signal reserved to indicate that execution failed, raised only when an exception is thrown.
+	                    failed_signal{false};
 };
 
 }

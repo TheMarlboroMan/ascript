@@ -35,6 +35,7 @@ void interpreter::run(
 	current_stack=&stacks.back();
 	current_stack->context.symbol_table=symbol_table;
 
+	//Reset all signals and enter the main loop.
 	break_signal=false;
 	yield_signal=false;
 	failed_signal=false;
@@ -57,11 +58,16 @@ void interpreter::interpret() {
 
 	try {
 
+	//This function will be running for as long as there are stacks and 
+	//instructions left (unless we exit, return or yield). There are no 
+	//recursive calls so it's intuitive to recover from a yield.
 	while(stacks.size()) {
 
 		const auto& current_block=(current_stack->current_function->blocks[current_stack->block_index]);
 //std::cout<<" >> ["<<stacks.size()<<"] "<<current_stack->current_function->name<<":"<<current_stack->block_index<<":"<<current_stack->instruction_index<<" / "<<current_block.instructions.size()<<std::endl;
 
+		//Evaluate a signal to break from a loop resulting of a previous instruction.
+		//pop the stack until we exit a loop block.
 		if(break_signal) {
 
 			if(current_block.type==block::types::loop) {
@@ -83,7 +89,8 @@ void interpreter::interpret() {
 
 		if(is_done) {
 
-			//Popping and pushing the stack will refresh the symbol table.
+			//For loops, the symbol table must need to be refreshes. 
+			//Popping and pushing the stack will just reset everything we need.
 			if(current_block.type==block::types::loop) {
 
 				const auto stack_copy=*current_stack;
@@ -93,11 +100,10 @@ void interpreter::interpret() {
 					stack_copy.current_function,
 					stack_copy.block_index
 				);
-
-				current_stack->instruction_index=0;
 			}
 			else {
 
+				//!This would pop the last stack, prompting the end of this method.
 				pop_stack(false, current_block.instructions.back()->line_number);
 			}
 
@@ -105,7 +111,7 @@ void interpreter::interpret() {
 		}
 
 		const auto& instruction=current_block.instructions[current_stack->instruction_index];
-		current_stack->context.reset();
+		current_stack->context.reset(); //Reset any data derived from the previous instruction.
 
 //std::cout<<*instruction<<std::endl;
 
@@ -113,10 +119,10 @@ void interpreter::interpret() {
 
 		instruction->run(current_stack->context);
 
+		//!Evaluate signals.
 		switch(current_stack->context.signal) {
 
-			case run_context::signals::none: 
-			break;
+			case run_context::signals::none: break;
 			case run_context::signals::sigfail: 
 
 				error_builder::get()<<"fail signal raised: "
@@ -128,11 +134,14 @@ void interpreter::interpret() {
 
 				break_signal=true;
 			break;
+			//!Return and return with a value are different signals: a hack.
 			case run_context::signals::sigreturnval:
 			case run_context::signals::sigreturn:{
 
 				auto exiting_stack=*current_stack;
 
+				//Pop stacks until we pop the last of a function. Remember that
+				//a function might have more than one stack (one per block).
 				while(true) {
 
 					auto exiting_fn_block=current_stack->block_index;
@@ -175,7 +184,7 @@ void interpreter::interpret() {
 
 					error_builder::get()<<"undefined function "
 						<<current_stack->context.value.str_val
-						<<throw_err{instruction->line_number, throw_err::types::user};
+						<<throw_err{instruction->line_number, throw_err::types::interpreter};
 				}
 
 				auto symbol_table=prepare_symbol_table(
@@ -192,6 +201,8 @@ void interpreter::interpret() {
 			}
 			break;
 
+			//This actually means to enter another block, like entering if 
+			//branches or for loops.
 			case run_context::signals::sigjump:
 
 				push_stack(
@@ -214,6 +225,7 @@ void interpreter::push_stack(
 	int _stack_index
 ) {
 
+	//Copy the current symbol table to make it available on the next stack.
 	auto exiting_table=current_stack->context.symbol_table;
 
 	stacks.push_back(
@@ -243,6 +255,8 @@ void interpreter::pop_stack(
 	int _line_number
 ) {
 
+	//Get the exiting table so we can overwrite the symbols on the parent 
+	//table if they existed on the one we just ran.
 	auto exiting_table=current_stack->context.symbol_table;
 
 	stacks.pop_back();
