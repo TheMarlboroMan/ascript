@@ -114,10 +114,19 @@ int main(
 			i.add_function(s);
 		}
 
-		i.run(sh, outfacility, _argv[2], {});
-		if(!i.is_finished()) {
+		auto result=i.run(sh, outfacility, _argv[2], {});
+
+		if(result) {
+
+			std::cout<<"interpreter got a return value of "<<result.get()<<std::endl;
+		}
+		else if(result.is_yield()) {
 
 			std::cout<<"interpreter yielded, execution not finished"<<std::endl;
+		}
+		else if(result.is_nothing()) {
+
+			std::cout<<"interpreter got no return value"<<std::endl;
 		}
 	}
 	catch(std::exception& e) {

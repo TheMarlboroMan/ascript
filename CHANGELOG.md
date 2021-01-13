@@ -7,15 +7,18 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 ## [Unreleased]
 
 - character based tokenizer.
+- removal of "call" keyword.
+
+## [0.0.1] - 2021-01-13
+### Added
+
+- return value from interpreter::run
+- documentation to be created with doxygen, better example, mostly complete manual.
 
 ## [0.0.0] - 2021-01-11
 ### Added
 
 - first version with all the planned features, still pending extensive testing.
-
-
-
-
 
 [ The following information is for copy-paste purposes]
 

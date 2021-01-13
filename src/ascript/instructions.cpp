@@ -246,11 +246,11 @@ variable instruction_is_lesser_than::evaluate(
 
 	try {
 
-		const auto first=arguments.front();
+		const auto first=solved.front();
 
 		return std::all_of(
-			std::begin(arguments)+1,
-			std::end(arguments),
+			std::begin(solved)+1,
+			std::end(solved),
 			[&first](const variable& _var) {
 				return first < _var;
 			}
@@ -275,15 +275,15 @@ variable instruction_is_greater_than::evaluate(
 	run_context& _ctx
 ) const {
 
-		auto solved=solve(arguments, _ctx.symbol_table, line_number);
+	auto solved=solve(arguments, _ctx.symbol_table, line_number);
 
 	try {
 
-		const auto first=arguments.front();
+		const auto first=solved.front();
 
 		return std::all_of(
-			std::begin(arguments)+1,
-			std::end(arguments),
+			std::begin(solved)+1,
+			std::end(solved),
 			[&first](const variable& _var) {
 				return first > _var;
 			}

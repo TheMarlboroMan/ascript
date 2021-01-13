@@ -6,17 +6,17 @@
 
 using namespace ascript;
 
-void interpreter::run(
+return_value interpreter::run(
 	host& _host,
 	out_interface& _out_facility,
 	const std::string& _funcname, 
 	const std::vector<variable>& _arguments
 ) {
 
-	run(_host, _out_facility, *functions.at(_funcname), _arguments);
+	return run(_host, _out_facility, *functions.at(_funcname), _arguments);
 }
 
-void interpreter::run(
+return_value interpreter::run(
 	host& _host,
 	out_interface& _out_facility,
 	const function& _function, 
@@ -40,10 +40,10 @@ void interpreter::run(
 	yield_signal=false;
 	failed_signal=false;
 
-	interpret();
+	return interpret();
 }
 
-void interpreter::resume() {
+return_value interpreter::resume() {
 
 	if(!yield_signal) {
 
@@ -51,10 +51,10 @@ void interpreter::resume() {
 	}
 
 	yield_signal=false;
-	interpret();
+	return interpret();
 }
 
-void interpreter::interpret() {
+return_value interpreter::interpret() {
 
 	try {
 
@@ -147,21 +147,27 @@ void interpreter::interpret() {
 					auto exiting_fn_block=current_stack->block_index;
 
 					pop_stack(false, instruction->line_number);
-					if(!stacks.size()) {
-						return;
-					}
 
 					//Did we unwind the full function?
 					if(0==exiting_fn_block) {
 
 						//Are we returning to another function? If so, copy
 						//the returned value to the current stack...
-						if(exiting_stack.context.signal==run_context::signals::sigreturnval) {
+						if(stacks.size()) {
+							if(exiting_stack.context.signal==run_context::signals::sigreturnval) {
 
-							current_stack->context.return_register=exiting_stack.context.return_register;
+								current_stack->context.return_register=exiting_stack.context.return_register;
+							}
+
+							break;
 						}
+						//Returning from the main function of this interpreter.
+						else {
 
-						break;
+							return (exiting_stack.context.signal==run_context::signals::sigreturnval)
+								? return_value{exiting_stack.context.return_register.value()}
+								: return_value{return_value::types::nothing};
+						}
 					}
 				}
 			}
@@ -169,12 +175,12 @@ void interpreter::interpret() {
 			case run_context::signals::sigexit:
 
 				stacks.clear();
-				return;
+				return {return_value::types::nothing};
 			break;
 			case run_context::signals::sigyield:
 
 				yield_signal=true;
-				return;
+				return {return_value::types::yield};
 			break;
 
 			case run_context::signals::sigcall:{
@@ -218,6 +224,9 @@ void interpreter::interpret() {
 		failed_signal=true;
 		throw;
 	}
+
+	//Default return type for falling out of a function.
+	return {return_value::types::nothing};
 }
 
 void interpreter::push_stack(

@@ -69,10 +69,12 @@ struct throw_err {
 * Simple class to build error messages. Get one git "get", append error 
 * information with << and append a throw_err structure to throw.
 **/
-struct error_builder {
+class error_builder {
+
+	public:
 
 	//!Procures an error builder object.
-	static error_builder    get() {return {std::stringstream{""}};}
+	static error_builder    get() {return error_builder{};}
 
 	//!Adds error information.
 	template<typename T>
@@ -89,17 +91,22 @@ struct error_builder {
 
 		switch(_val.type) {
 			case throw_err::types::parser:
-				throw parser_error(ss.str());
+				throw parser_error(std::string{"parser error: "}+ss.str());
 			case throw_err::types::interpreter:
-				throw interpreter_error(ss.str());
+				throw interpreter_error(std::string{"interpreter error: "}+ss.str());
 			case throw_err::types::user:
-				throw user_error(ss.str());
+				throw user_error(std::string{"user error: "}+ss.str());
 			case throw_err::types::host:
-				throw host_error(ss.str());
+				throw host_error(std::string{"host error: "}+ss.str());
 		}
 	}
 
 	private:
+
+	//!Class constructor.
+	                        error_builder() {
+
+	}
 
 	//!Internal stream.
 	std::stringstream       ss;

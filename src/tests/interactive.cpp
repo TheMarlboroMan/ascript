@@ -294,7 +294,20 @@ void resume_interpreter(
 		return;
 	}
 
-	interpreter.resume();
+	auto result=interpreter.resume();
+
+	if(result) {
+
+		std::cout<<"execution return with "<<result.get()<<std::endl;
+	}
+	else if(result.is_yield()) {
+
+		std::cout<<"interpreter is in yield state"<<std::endl;
+	}
+	else if(result.is_nothing()) {
+
+		std::cout<<"execution returned nothing"<<std::endl;
+	}
 }
 
 void help() {
@@ -517,8 +530,6 @@ void run(
 		}
 	}
 
-	std::cout<<"will run "<<funcname<<std::endl;
-
 	ascript::interpreter interpreter;
 	for(const auto& pair: _functions) {
 		interpreter.add_function(pair.second);
@@ -530,18 +541,19 @@ void run(
 		std::move(interpreter)
 	});
 
-	std::get<2>(_interpreters.back()).run(_host, _out, funcname, arguments);
-	while(true) {
+	auto result=std::get<2>(_interpreters.back()).run(_host, _out, funcname, arguments);
 
-		if(std::get<2>(_interpreters.back()).is_finished()) {
+	if(result) {
 
-			return;
-		}
-		else {
+		std::cout<<"execution return with "<<result.get()<<std::endl;
+	}
+	else if(result.is_yield()) {
 
-			std::cout<<"interpreter is in yield state"<<std::endl;
-			return;
-		}
+		std::cout<<"interpreter is in yield state"<<std::endl;
+	}
+	else if(result.is_nothing()) {
+
+		std::cout<<"execution returned nothing"<<std::endl;
 	}
 }
 

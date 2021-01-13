@@ -2,6 +2,7 @@
 
 #include "instructions.h"
 #include "run_context.h"
+#include "return_value.h"
 #include "out_interface.h"
 
 #include <vector>
@@ -42,10 +43,13 @@ class interpreter {
 	public:
 
 	//!Directly runs a function object.
-	void                run(host&, out_interface&, const function&, const std::vector<variable>&);
+	return_value        run(host&, out_interface&, const function&, const std::vector<variable>&);
 
 	//!Runs a named function that should have been added before.
-	void                run(host&, out_interface&, const std::string&, const std::vector<variable>&);
+	return_value        run(host&, out_interface&, const std::string&, const std::vector<variable>&);
+
+	//!Resumes a yielding execution. Throws if the execution is not stopped.
+	return_value        resume();
 
 	//!Returns true if the function has finished executing correctly.
 	//!the function yielded.
@@ -53,9 +57,6 @@ class interpreter {
 
 	//!Returns true if the function failed.
 	bool                is_failed() const {return failed_signal;}
-
-	//!Resumes a yielding execution. Throws if the execution is not stopped.
-	void                resume();
 
 	//!Returns true if a function with the given name can be found;
 	bool                has_function(const std::string& _funcname) const {
@@ -76,7 +77,8 @@ class interpreter {
 	private:
 
 	//!Main loop function. There are no recursive calls to this function.
-	void                interpret();
+	return_value        interpret();
+
 	//!Prepares a symbol table for a function call to be called (makes parameters available).
 	std::map<std::string, variable> prepare_symbol_table(const function&, const std::vector<variable>&, int);
 	//!Pushes a new stack.

@@ -1,0 +1,172 @@
+#this function prints out the input parameter and returns nothing.
+beginfunction returns_nothing [param as string];
+
+	out ["returns_nothing with: ", param];
+	return;
+
+endfunction;
+
+#this function prints out the input parameter and returns it.
+beginfunction returns_something [param as string];
+
+	out ["returns_something with: ", param];
+	return [param];
+
+endfunction;
+
+#this function recursively adds 2 to param N times (as indicated by total) and
+#returns the final value.
+beginfunction chain [param as int, count as int, total as int];
+
+	if is_equal [count, total];
+
+		return [param];
+	else;
+
+		set count to add [count, 1];
+		set param to add [param, 2];
+		set param to call ["chain", param, count, total];
+		return [param];
+	endif;
+
+endfunction;
+
+#this function prints out a greeting and returns no value
+beginfunction greeter;
+
+	out ["hello"];
+
+endfunction;
+
+#this function dumps out the given parameter with no additional strings.
+beginfunction dumper [param as any];
+
+	out [param];
+
+endfunction;
+
+#main function, a small program that does some test calls and then will yield 
+#until a value is declared in the host.
+beginfunction main;
+
+	out ["begin test calls..."];
+	call ["returns_nothing", "my string"];
+	let result be call ["returns_something", "my string"];
+	out ["result is: ", result];
+
+	out ["begin recursive test call..."];
+	let intval be 0;
+	set intval to call ["chain", intval, 0, 3];
+	out ["intval is: ", intval];
+
+	out ["begin arithmetic tests..."];
+	set intval to 0;
+	out ["inval is ", intval];
+
+	set intval to add [3, 2, 1];
+	out ["inval is ", intval];
+
+	if not is_equal [intval, 6];
+		fail ["something went very wrong in the addition tests..."];
+	endif;
+
+	if not is_greater_than [intval, 1, 2, 3, 4, 5];
+		fail ["something failed in the greater than tests..."];
+	endif;
+
+	if is_greater_than [intval, 6];
+		fail ["a value cannot be greater than itself..."];
+	endif;
+
+	if not is_lesser_than [intval, 7, 8, 9, 10];
+		fail ["something failed in the lesser than tests..."];
+	endif;
+
+	if is_lesser_than [intval, 6];
+		fail ["a value cannot be lesser than itself..."];
+	endif;
+
+	set intval to substract [intval, 3];
+	if not is_equal [intval, 3];
+		fail ["something failed in the substraction operation..."];
+	endif;
+
+	if not is_int [intval];
+		fail ["something failed asserting that inval is an integer"];
+	endif;
+
+	if is_double [intval];
+		fail ["integer value should not be a double"];
+	endif;
+
+	if is_bool [intval];
+		fail ["integer value should not be a boolean"];
+	endif;
+
+	if is_string [intval];
+		fail ["integer value should not be a string"];
+	endif;
+
+	out ["begin control flow tests... if hostval or hosttest was declared a a string in the host, it will be printed out"];
+
+	if host_has ["hostval"];
+
+		let tempval be host_get ["hostval"];
+		if is_string [tempval];
+
+			out ["hostval was declared as ", tempval];
+		else;
+
+			out ["hostval was declared, but it was not a string"];
+		endif;
+
+	elseif host_has ["hosttest"];
+
+		let tempval be host_get ["hosttest"];
+		if is_string [tempval];
+
+			out ["hosttest was declared as ", tempval];
+		else;
+
+			out ["hosttest was declared, but it was not a string"];
+		endif;
+	else;
+
+		out ["neither hostval or hosttest were declared in the host"];
+	endif;
+
+	out ["testing simple loop"];
+	let doubleval be 0.0;
+	let targetval be 2.2;
+
+	out [doubleval];
+	out [targetval];
+
+	loop;
+
+		if is_greater_than [doubleval, targetval];
+
+			break;
+		endif;
+
+		set doubleval to add [doubleval, 0.1];
+		out [doubleval, " / ", targetval];
+
+	endloop;
+
+	out ["testing yielding loop..."];
+	loop;
+
+		if host_has ["exit"];
+
+			break;
+		endif;
+
+		out ["yielding until 'exit' is declared in the host"];
+		yield;
+
+	endloop;
+
+	return [intval];
+
+endfunction;

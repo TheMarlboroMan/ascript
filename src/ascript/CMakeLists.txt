@@ -8,6 +8,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/interpreter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/variable.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/stdout_out.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/return_value.cpp
 	PARENT_SCOPE
 )
 

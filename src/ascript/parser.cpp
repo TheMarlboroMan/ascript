@@ -326,6 +326,12 @@ std::vector<variable> parser::arguments_mode(
 					extract();
 				}
 			break;
+			case token::types::val_double:
+				parameters.push_back({token.double_val});
+				if(peek().type==token::types::comma) {
+					extract();
+				}
+			break;
 			case token::types::identifier:
 				parameters.push_back({token.str_val, variable::types::symbol});
 				if(peek().type==token::types::comma) {
