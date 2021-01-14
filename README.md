@@ -60,7 +60,7 @@ ascript does not adhere to BNF form, that is, it does not support token resoluti
 
 In the same way, boolean logic is performed through functions. It follows that a valid statement is "if func [1, 2]". However, "let val be func [1,2]; if val" is not a valid form, even if the redundant "let val be func [1,2]; if is_same [val, true]" is valid. There is a "not" keyword that allows for "if not is_equal [true, false]" but there are not "and", or "or" keywords (again, no BNF). Given that is_* functions accept multiple arguments, simple cases can be covered ("if is_equal[true, val1, val2, val3, val4]") but compound statements will be neccesary for others.
 
-Functions cannot be found outside assignments and boolean statements. Procedures (functions that return no values), however can only be found outside these.
+Built-in functions cannot be found outside assignments and boolean statements. Built-in procedures (functions that return no values), however can only be found outside these. User-defined functions can appear in both places.
 
 ###types
 
@@ -92,7 +92,7 @@ Functions can also call other functions. Recursion is theoretically supported.
 
 ###variables
 
-Variables can be declared statically in the following form:
+Variables can be declared to hold statically defined values in the following form:
 
 let *variablename* be *variablevalue*;
 
@@ -115,7 +115,7 @@ Variables do not share their space with host symbol tables, but do share it with
 
 ####variable scope
 
-A variable will exist for as long as it block does. That is, everything declared after beginfunction, if, elseif, else or loop will exist until its corresponding closing statement.
+A variable will exist for as long as its block does. That is, everything declared after beginfunction, if, elseif, else or loop will exist until its corresponding closing statement.
 
 ###returning values from functions
 
@@ -196,7 +196,7 @@ endif;
 
 It follows that this the shortest valid if statement:
 
-if is_equal [true, true];
+if fn [];
 	statements;
 endif;
 
@@ -209,6 +209,17 @@ endif;
 if funcname [true, true];
 	statements;
 endif;
+
+A user-defined function that returns no value will cause a runtime error if used within an if statement:
+
+beginfunction test;
+	out ["fail"];
+endfunction;
+
+if test[];
+	out ["will never get here"];
+endif;
+out ["nor here"];
 
 ####loops
 
@@ -225,6 +236,8 @@ Loops can be exited by:
 	- fail
 
 ascript runs in a single thread: an infinite loop will freeze the calling environment unless "yield" is used!.
+
+There's no for or while loops. All loops expect to have some if clause that breaks (or yield and loop forever).
 
 ####yielding functions
 
