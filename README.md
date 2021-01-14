@@ -255,9 +255,11 @@ set *variablename* to call ["functioname", param, param];
 
 Function names must be expressed as strings or as variables that resolve to a valid function name.
 
+TODO: As of today, "call" is used to guarantee unambiguity of purpose. However, it is perfectly possible that in the near future this keyword dissapears and custom functions can be used as built-in procedures and functions, disambiguating them by the inclusion of parameters (that is, instead of "call ["do_something", 33]" we could have "do_something [33]" or even "let c be do_something [33]" where the parameter indicates that do something is indeed a function and not a variable (variables could not take the names of functions in that case). There's a second option in which the "call" keyword is compulsory for built-ins too, for clarity purposes, as in "let b be call ["is_equal", 1, 1]" or "let b be call is_equal [1,1]"... In any case, the one thing I am afraid of is of the distinction between procedures and functions, but that's already taken care of (the language does not care, it is the runtime the one that says "expected a return value!!!!").
+
 ###built in functions
 
-These are the built-in functions:
+These are the built-in functions. All these functions can appear at variable assignment or declaration. Those returning boolean values can also appear in branch statements.
 
 ####is_equal
 
@@ -316,40 +318,40 @@ Returns true if all the given parameters are of string type.
 
 ####host_has
 
-TODO:
+Returns true if the host has all given names on its symbol table. All names must be expressed as strings or as variables that solve to strings.
 
 ####host_get
 
-TODO:
+Takes a single value (a string or a variable that solves to one) and returns the value that exits in the host's symbol table with that name. If the name does not exist, it should throw (the host behaviour is actually implementation-defined).
 
 ####host_query
 
-TODO:
+Takes any number of values to make the host produce a single variable. Everything about this function is implementation-defined. Semantics imply that this function must be used to query the host for information.
 
 ###built in procedures 
 
-These are the built-in procedures.
+These are the built-in procedures. None of them return any value and they can only appear on their own, never as part of any other statement.
 
-####pr_host_delete
+####host_delete
 
-TODO:
+Deletes the given symbols (as strings or variables that solve to strings) in the host. Should throw if the symbols do not exist, but that's implementation-defined.
 
-####pr_host_set
+####host_set
 
-TODO:
+Takes two parameters, asking the host to set the symbol on the first parameter (a string or a variable that solves as one) to the value on the second. Semantics imply that the host should throw if the symbol does not exist, but nothing forces that. Language conventions also imply that the type of the symbol should not change, but ultimately that's defined by the host implementation.
 
-####pr_host_add
+####host_add
 
-TODO:
+Takes two parameters, asking the host to add a new the symbol (the first parameter, a string or a variable that solves as one) with the value of the second. Semantics imply that the host should throw if the symbol already exists, but nothing forces that. 
 
-####pr_host_do
+####host_do
 
-TODO:
+Takes any number of parameters to ask the host to perform completely implementation-defined actions. Semantics imply that the host is able to change its state as a consequence of a call to host_do.
 
-####pr_out
+####out
 
-TODO:
+Uses the out_interface to output whatever values it is passed (integers, strings, booleans and doubles). Takes any number of parameters.
 
-####pr_fail
+####fail
 
-TODO:
+Halts the execution and throws an user error, whose message is the concatenation of all parameters passed (of any type).
