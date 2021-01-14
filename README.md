@@ -336,7 +336,75 @@ Takes a single value (a string or a variable that solves to one) and returns the
 
 ####host_query
 
-Takes any number of values to make the host produce a single variable. Everything about this function is implementation-defined. Semantics imply that this function must be used to query the host for information.
+Takes any number of values to make the host produce a single variable. Everything about this function is implementation-defined. Semantics imply that this function must be used to query the host for information, whereas host_do must be used to ask the host do change its state, for example:
+
+beginfunction check_for_mistic_key [keytype as string];
+
+	let result be host_query ["check_key", keytype];
+	return [result];
+endfunction;
+
+beginfunction check_for_opened_door [door_id as int];
+
+	let result be host_query ["is_door_open", door_id];
+	return [result];
+endfunction;
+
+beginfunction open_door [keytype as string, door_id as int];
+
+	if check_for_opened_door [door_id];
+
+		return;
+	endif;
+
+	if not check_for_mistic_key [keytype];
+
+		host_do ["show_message", "key needed", keytype];
+	else;
+
+		host_do ["open_door", door_id];
+	endif;
+endfunction;
+
+In the host program, a door object can be programmed to hold its id and the keytype as a string and, on interaction, fire up an interpreter and call "open door";
+
+	interpreter.run(host, outfacility, "opendoor", {keytype, id]);
+
+The host function could be implemented as follows:
+
+	variable host_query(const std::vector<variable>& _arguments) const {
+
+		//type and size checking is skipped for brevity.
+
+		std::string message=_arguments[0].str_val;
+
+		if(message=="check_key") {
+
+			return player_instance.has_key(_arguments[1].str_val);
+		}
+		else if(message=="is_door_open") {
+
+			return current_map.get_door(_arguments[1].int_val).is_open();
+		}
+
+		//throw something...
+	}
+
+	void host_do(const std::vector<variable> _arguments) {
+
+		//type and size checking is skipped for brevity.
+
+		std::string message=_arguments[0].str_val;
+
+		if(message=="open_door") {
+			
+			current_map.get_door(_arguments[1].int_val).open();
+		}
+		else if(message=="show_message") {
+
+			//blah blah blah
+		}
+	}
 
 ###built in procedures 
 
