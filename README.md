@@ -15,13 +15,12 @@ Short for annoying script. An annoying script language...
 ##TODO:
 
 - Check for memory leaks.
-- Check if we can remove "call"... an identifier in linear or variable manipulation mode is automatically assumed to be a function call and can be translated as a call token.
 - Cleanup arguments / parameters name, they should not be interchangeable in a readable codebase.
 - Check TODOs.
 - As an interesting exercise, try separating "variable" into "type", which would have subtypes for int, bool and such.
+	- An alternative is to leave variable to exist, but have separate storage classes for each type and have the class point to them when retrieving data.
 - Study homogeneous arrays, with a syntax like let crap be {1,2,3}; and then array_size[crap], array_get[crap, 1], array_set[crap, 2, 33], and so on.
 - Study structures (symbol tables on themselves, custom types). they would be... interesting, let crap be packed type [member:value, member:value, member:value];
-- Write small manual.
 
 ##manual
 
@@ -104,13 +103,13 @@ There are no reference types.
 Variables can be declared to hold the return value of a function:
 
 let *variablename* be built_in_fn [param, param];
-let *variablename* be call ["custom_function", param, param];
+let *variablename* be custom_function [param, param];
 
 Variables can be reset with the form:
 
 set *variablename* to *variablevalue*;
 set *variablename* to built_in_fn [param, param];
-set *variablename* to call ["custom_function", param, param];
+set *variablename* to custom_function [param, param];
 
 Variables do not share their space with host symbol tables, but do share it with function parameters.
 
@@ -201,22 +200,13 @@ if is_equal [true, true];
 	statements;
 endif;
 
-Evaluation functions can only be built-ins, thus, this is legal:
+Evaluation functions can either be built-ins or user-defined functions.
 
 if is_equal [true, true];
 	statements;
 endif;
 
-But this is not:
-
-if call["funcname", true, true];
-	statements;
-endif;
-
-Which must be expressed as:
-
-let something be call["funcname", true];
-if is_equal [something, true];
+if funcname [true, true];
 	statements;
 endif;
 
@@ -242,20 +232,27 @@ The keyword "yield" causes the execution of a function to be halted with no retu
 
 The purpose of "yield" is to be able to run infinite loops without freezing the calling environment. It could be argued that the same functionality can be obtained with repeated "run" calls, but I wanted "yield" to exist anyhow.
 
-###calling other functions
+###calling built-in and user-defined functions
 
-Calling other functions is done through the keyword "call", as such:
+Calling other functions is done using the function identifier and brackets for the parameter lists:
 
-call ["functioname", param, param];
+functioname [param, param];
+
+If a function needs no parameters, ascript still needs the brackets for disambiguation purposes.
+
+functionname [];
 
 Should the function return a value, it can be captured with:
 
-let *variablename* be call ["functioname", param, param];
-set *variablename* to call ["functioname", param, param];
+let *variablename* be functioname [param, param];
+set *variablename* to functioname [param, param];
 
-Function names must be expressed as strings or as variables that resolve to a valid function name.
+Function names cannot be captured as strings, thus this:
 
-TODO: As of today, "call" is used to guarantee unambiguity of purpose. However, it is perfectly possible that in the near future this keyword dissapears and custom functions can be used as built-in procedures and functions, disambiguating them by the inclusion of parameters (that is, instead of "call ["do_something", 33]" we could have "do_something [33]" or even "let c be do_something [33]" where the parameter indicates that do something is indeed a function and not a variable (variables could not take the names of functions in that case). There's a second option in which the "call" keyword is compulsory for built-ins too, for clarity purposes, as in "let b be call ["is_equal", 1, 1]" or "let b be call is_equal [1,1]"... In any case, the one thing I am afraid of is of the distinction between procedures and functions, but that's already taken care of (the language does not care, it is the runtime the one that says "expected a return value!!!!").
+let a be "myfunc";
+let b be a [true];
+
+Will fail unless there's a "a" function defined.
 
 ###built in functions
 

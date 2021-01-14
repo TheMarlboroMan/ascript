@@ -40,7 +40,6 @@ struct token {
 		pr_host_do,
 		pr_out,
 		pr_fail,
-		kw_call,
 		kw_not,
 		kw_if,
 		kw_elseif,

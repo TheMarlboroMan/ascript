@@ -51,7 +51,6 @@ tokenizer::tokenizer() {
 	typemap["out"]=token::types::pr_out;
 	typemap["beginfunction"]=token::types::kw_beginfunction;
 	typemap["endfunction"]=token::types::kw_endfunction;
-	typemap["call"]=token::types::kw_call;
 	typemap["exit"]=token::types::kw_exit;
 }
 

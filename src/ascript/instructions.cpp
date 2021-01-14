@@ -493,17 +493,7 @@ void instruction_function_call::run(
 	run_context& _ctx
 ) const {
 
-	auto fnname=solve(function_name, _ctx.symbol_table, line_number);
-	if(fnname.type != variable::types::string) {
-
-		error_builder::get()
-			<<"call function name '"
-			<<fnname
-			<<"' must solve to a string"
-			<<throw_err{line_number, throw_err::types::interpreter};
-	}
-
-	_ctx.value=fnname;
+	_ctx.value=function_name;
 	_ctx.arguments=solve(arguments, _ctx.symbol_table, line_number);
 	_ctx.signal=run_context::signals::sigcall;
 }

@@ -7,7 +7,16 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 ## [Unreleased]
 
 - character based tokenizer.
-- removal of "call" keyword if I ever find peace with an alternative.
+- packed types (structs)
+- arrays
+- better handling of variable memory
+- module support (precompiled functions, not evaluated at runtime).
+- more arithmetic functions (as needed).
+
+## [0.0.2] - 2021-01-14
+### Changed
+
+- removal of "call" keyword. Breaks compatibility.
 
 ## [0.0.1] - 2021-01-13
 ### Added

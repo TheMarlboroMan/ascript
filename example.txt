@@ -25,7 +25,7 @@ beginfunction chain [param as int, count as int, total as int];
 
 		set count to add [count, 1];
 		set param to add [param, 2];
-		set param to call ["chain", param, count, total];
+		set param to chain [ param, count, total];
 		return [param];
 	endif;
 
@@ -50,21 +50,21 @@ endfunction;
 beginfunction main;
 
 	out ["begin test calls..."];
-	call ["returns_nothing", "my string"];
-	let result be call ["returns_something", "my string"];
+	returns_nothing ["my string"];
+	let result be returns_something ["my string"];
 	out ["result is: ", result];
 
 	out ["begin recursive test call..."];
 	let intval be 0;
-	set intval to call ["chain", intval, 0, 3];
+	set intval to chain [intval, 0, 3];
 	out ["intval is: ", intval];
 
 	out ["begin arithmetic tests..."];
 	set intval to 0;
-	out ["inval is ", intval];
+	out ["intval should be 0, is ", intval];
 
 	set intval to add [3, 2, 1];
-	out ["inval is ", intval];
+	out ["intval should be 6, is ", intval];
 
 	if not is_equal [intval, 6];
 		fail ["something went very wrong in the addition tests..."];

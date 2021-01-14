@@ -44,11 +44,14 @@ class parser {
 	//!Reading if branches...
 	void                    conditional_branch_mode(int, int);
 
+	//!Reading a return statement.
+	void                    return_mode(int, const token&);
+	
 	//!Reading loops...
 	void                    loop_mode(int, int);
 
-	//!Reading function calls.
-	void                    call_mode(int, const token&);
+	//!Reading not-built in functions.
+	void                    function_call_mode(int, const token&);
 
 	//!Reading a procedure (out, fail...)
 	void                    add_procedure(const token&, std::vector<variable>&, int);
@@ -70,6 +73,15 @@ class parser {
 
 	//!Returns next token without removing it from the token list.
 	token                   peek();
+
+	//!Returns true if the token is a static value type.
+	bool                    is_static_value(const token&) const;
+
+	//!Returns true if the token is a built-in function.
+	bool                    is_built_in_function(const token&) const;
+
+	//!Returns true if the token is a built-in procedure.
+	bool                    is_built_in_procedure(const token&) const;
 
 	std::vector<token>      tokens;
 	std::vector<function>   functions;
