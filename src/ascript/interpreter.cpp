@@ -6,6 +6,13 @@
 
 using namespace ascript;
 
+interpreter::interpreter()
+	:yield_release_time{std::chrono::system_clock::time_point::min()},
+	yield_pause_time{yield_release_time}
+{
+
+}
+
 return_value interpreter::run(
 	host& _host,
 	out_interface& _out_facility,
@@ -50,12 +57,21 @@ return_value interpreter::resume() {
 		throw std::runtime_error("called resume on non yielding process");
 	}
 
+	//If paused, will return "yield", even if the internal time elapsed. That
+	//is, if yielding for one second and a call to pause happens after two 
+	//seconds it will count as yielded until unpaused.
+	if(yield_pause_time!=std::chrono::system_clock::time_point::min()) {
+
+		return {return_value::types::yield};
+	}
+
 	auto now=std::chrono::system_clock::now();
 	if(std::chrono::duration_cast<std::chrono::milliseconds>(yield_release_time-now).count() > 0) {
 
 		return {return_value::types::yield};
 	}
 
+	yield_release_time=std::chrono::system_clock::time_point::min();
 	yield_signal=false;
 	return interpret();
 }
@@ -420,4 +436,36 @@ int interpreter::get_yield_ms_left() const {
 
 	auto now=std::chrono::system_clock::now();
 	return std::chrono::duration_cast<std::chrono::milliseconds>(yield_release_time-now).count();
+}
+
+void interpreter::pause() {
+
+	if(!is_timed_yield()) {
+
+		error_builder::get()<<"cannot call 'pause' on non-time-yield interpreters"
+			<<throw_err{0, throw_err::types::interpreter};
+	}
+
+	if(is_paused()) {
+
+		error_builder::get()<<"cannot call 'pause' on already paused interpreters"
+			<<throw_err{0, throw_err::types::interpreter};
+	}
+
+	yield_pause_time=std::chrono::system_clock::now();
+}
+
+void interpreter::unpause() {
+
+	if(!is_paused()) {
+	
+		error_builder::get()<<"cannot call 'unpause' on non paused interpreters"
+			<<throw_err{0, throw_err::types::interpreter};
+	}
+
+	auto now=std::chrono::system_clock::now();
+	int ms_elapsed_since_pause=std::chrono::duration_cast<std::chrono::milliseconds>(now-yield_pause_time).count();
+
+	yield_release_time+=std::chrono::milliseconds(ms_elapsed_since_pause);
+	yield_pause_time=std::chrono::system_clock::time_point::min();
 }

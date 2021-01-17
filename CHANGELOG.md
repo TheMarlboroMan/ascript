@@ -18,6 +18,7 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 
 - added "yield for ms" statement, for timed yields.
 - added yield-related facilities (querying for yield time, mostly) to interpreters and environment.
+- added "pause" and "unpause" for time-yield interpreters.
 
 ## [0.0.3] - 2021-01-16
 ### Added

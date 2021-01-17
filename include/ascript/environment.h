@@ -24,6 +24,9 @@ class environment {
 	//!Returns the number of current (yielding) interpreters.
 	std::size_t                 size() const {return interpreters.size();}
 
+	//!Removes all pending interpreters and resets the id counter. Does not remove functions.
+	void                        clear() {interpreters.clear(); counter=0;}
+
 	//!Loads functions from a file.
 	void                        load(const std::string&);
 
@@ -32,6 +35,12 @@ class environment {
 
 	//!Unloads a function by name.
 	void                        unload(const std::string&);
+
+	//!Pauses all pausable interpreters. Will not throw.
+	void                        pause();
+
+	//!Un pauses all pausable interpreters. Will not throw.
+	void                        unpause();
 
 	//!Runs a function.
 	return_value                run(const std::string&, const std::vector<variable>&);
@@ -44,6 +53,9 @@ class environment {
 
 	//!Returns a vector with the identifiers of yielding interpreters.
 	std::vector<std::size_t>    get_yield_ids() const;
+
+	//!Returns a reference to the interpreter with the given id, for finer control.
+	interpreter&                get_interpreter(std::size_t);
 
 	//!Returns the remaining yield time in milliseconds for the interpreter with the given id. Throws if no interpreter with that id is yielding.
 	int                         get_yield_time(std::size_t) const;

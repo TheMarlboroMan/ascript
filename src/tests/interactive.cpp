@@ -103,6 +103,8 @@ void erase_function(std::stringstream&, function_table&);
 void status(const std::vector<interpreter_representation>&);
 void remove_interpreter(std::stringstream&, std::vector<interpreter_representation>&);
 void resume_interpreter(std::stringstream&, std::vector<interpreter_representation>&);
+void pause_interpreter(std::stringstream&, std::vector<interpreter_representation>&);
+void unpause_interpreter(std::stringstream&, std::vector<interpreter_representation>&);
 void run(std::stringstream&, std::vector<interpreter_representation>&, script_host&, ascript::out_interface&, const function_table&, std::size_t&);
 void add_symbol(std::stringstream&, script_host&);
 void erase_symbol(std::stringstream&, script_host&);
@@ -201,6 +203,14 @@ bool process_input(
 	else if(command=="resume") {
 
 		resume_interpreter(_ss, _interpreters);
+	}
+	else if(command=="pause") {
+
+		pause_interpreter(_ss, _interpreters);
+	}
+	else if(command=="unpause") {
+
+		unpause_interpreter(_ss, _interpreters);
 	}
 	else if(command=="end") {
 
@@ -312,6 +322,98 @@ void resume_interpreter(
 	}
 }
 
+void pause_interpreter(
+	std::stringstream& _ss, 
+	std::vector<interpreter_representation>& _interpreters
+) {
+
+	if(_ss.eof()) {
+
+		std::cout<<"error: provide the interpreter id"<<std::endl;
+		return;
+	}
+
+	std::size_t id;
+	_ss>>id;
+
+	auto it=std::find_if(
+		std::begin(_interpreters),
+		std::end(_interpreters),
+		[id](const interpreter_representation& _int) {
+			return std::get<0>(_int)==id;
+		}
+	);
+
+	if(it==std::end(_interpreters)) {
+
+		std::cout<<"bad id"<<std::endl;
+		return;
+	}
+
+	auto& interpreter=std::get<2>(*it);
+
+	if(!interpreter.is_timed_yield()) {
+
+		std::cout<<"cannot pause non-timed-yield interpreter"<<std::endl;
+		return;
+	}
+
+	if(interpreter.is_paused()) {
+
+		std::cout<<"cannot pause already paused interpreter"<<std::endl;
+		return;
+	}
+
+	interpreter.pause();
+	std::cout<<"interpreter paused"<<std::endl;
+}
+
+void unpause_interpreter(
+	std::stringstream& _ss, 
+	std::vector<interpreter_representation>& _interpreters
+) {
+
+	if(_ss.eof()) {
+
+		std::cout<<"error: provide the interpreter id"<<std::endl;
+		return;
+	}
+
+	std::size_t id;
+	_ss>>id;
+
+	auto it=std::find_if(
+		std::begin(_interpreters),
+		std::end(_interpreters),
+		[id](const interpreter_representation& _int) {
+			return std::get<0>(_int)==id;
+		}
+	);
+
+	if(it==std::end(_interpreters)) {
+
+		std::cout<<"bad id"<<std::endl;
+		return;
+	}
+
+	auto& interpreter=std::get<2>(*it);
+
+	if(!interpreter.is_timed_yield()) {
+
+		std::cout<<"cannot unpause non-timed-yield interpreter"<<std::endl;
+		return;
+	}
+
+	if(!interpreter.is_paused()) {
+
+		std::cout<<"cannot unpause non-paused interpreter"<<std::endl;
+		return;
+	}
+
+	interpreter.unpause();
+	std::cout<<"interpreter unpaused"<<std::endl;
+}
+
 void help() {
 
 	std::cout<<R"str(
@@ -325,7 +427,10 @@ erase_function [funcname...]: erases the given function(s)
 status : shows interpreter status
 run [funcname int:param str:param double:param bool:param]: runs the given function in a new interpreter with the given parameters
 resume [interpreterid] : resumes the execution of an interpreter.
+pause [interpreterid] : pauses a time-yielding interpreter
+unpause [interpreterid] : unpauses a time-yielding interpreter
 end [interpreterid...] : removes an interpreter (or more)
+
 
 show_symbols: shows the current symbol table
 add_symbol [name type:val]: adds a value (int, bool, string, double) to the symbol table
@@ -353,7 +458,20 @@ void status(
 			std::cout<<"[failed]";
 		}
 		else if(!interpreter.is_finished()) {
-			std::cout<<"[yielding for "<<interpreter.get_yield_ms_left()<<" ms]";
+
+			if(interpreter.is_timed_yield()) {
+
+				if(interpreter.is_paused()) {
+					std::cout<<"[yielding, paused]";
+				}
+				else {
+					std::cout<<"[yielding for "<<interpreter.get_yield_ms_left()<<" ms]";
+				}
+			}
+			else {
+
+				std::cout<<"[yielding]";
+			}
 		}
 		else {
 			std::cout<<"[finished]";

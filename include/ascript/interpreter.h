@@ -43,6 +43,9 @@ class interpreter {
 
 	public:
 
+	//!Class constructor.
+	                    interpreter();
+
 	//!Directly runs a function object.
 	return_value        run(host&, out_interface&, const function&, const std::vector<variable>&);
 
@@ -50,7 +53,21 @@ class interpreter {
 	return_value        run(host&, out_interface&, const std::string&, const std::vector<variable>&);
 
 	//!Resumes a yielding execution. Throws if the execution is not stopped.
+	/**
+	* Returns a yield value if a timed yield has yet to finish or is paused.
+	*/
 	return_value        resume();
+
+	//!Sets a pause point for timed yields, indicating that yield time limits must be posponed.
+	/**
+	*A call to "unpause" will restore the previous status. Will throw if the interpreter is not yielding in a timed mannner.
+	*The use of this method is to "pause" the host application and cause the yielded interpreters to be paused too.
+	*Will throw if called upon already paused interpreters.
+	*/
+	void                pause();
+
+	//!Restores pause point for timed yields. Will throw if not paused.
+	void                unpause();
 
 	//!Returns true if the function has finished executing correctly.
 	//!the function yielded.
@@ -62,8 +79,15 @@ class interpreter {
 	//!Returns true if the interpreter is yielding.
 	bool                is_yield() const {return yield_signal;}
 
+	//!Returns true if the interpreter is yielding with a time lock.
+	bool                is_timed_yield() const {return is_yield() && yield_release_time!=std::chrono::system_clock::time_point::min();}
+
+	//!Returns true if the interpreted is in a timed yield and paused.
+	bool                is_paused() const {return is_timed_yield() && yield_pause_time!=std::chrono::system_clock::time_point::min();}
+
 	//!Returns the number of milliseconds until a time yield ends. Throws if
-	//!there's no yield, returns 0 if not a timed yield.
+	//!there's no yield, returns 0 if not a timed yield. The value cannot be 
+	//!trusted if the interpreter is paused!
 	int                 get_yield_ms_left() const;
 
 	//!Returns true if a function with the given name can be found;
@@ -113,7 +137,8 @@ class interpreter {
 	//!Signal reserved to indicate that execution failed, raised only when an exception is thrown.
 	                    failed_signal{false};
 	//!Point in time in which a timed yield will release.
-	std::chrono::time_point<std::chrono::system_clock> yield_release_time;
+	std::chrono::time_point<std::chrono::system_clock> yield_release_time,
+	                    yield_pause_time;
 
 };
 

@@ -200,3 +200,45 @@ int environment::get_yield_time(
 	const auto& interpreter=it->interpreter;
 	return interpreter.get_yield_ms_left();
 }
+
+interpreter& environment::get_interpreter(
+	std::size_t _id
+) {
+
+	const auto it=std::find_if(
+		std::begin(interpreters),
+		std::end(interpreters),
+		[_id](const pack& _pack) {
+			return _pack.id==_id;
+		}
+	);
+
+	if(it==std::end(interpreters)) {
+
+		error_builder::get()<<"no interpreter with id '"<<_id<<throw_err{0, throw_err::types::user};
+	}
+
+	return it->interpreter;
+}
+
+void environment::pause() {
+
+	for(auto& _pack : interpreters) {
+
+		if(_pack.interpreter.is_timed_yield() && !_pack.interpreter.is_paused()) {
+
+			_pack.interpreter.pause();
+		}
+	}
+}
+
+void environment::unpause() {
+
+	for(auto& _pack : interpreters) {
+
+		if(_pack.interpreter.is_timed_yield() && _pack.interpreter.is_paused()) {
+
+			_pack.interpreter.unpause();
+		}
+	}
+}
