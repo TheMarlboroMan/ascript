@@ -89,6 +89,21 @@ instruction_loop::instruction_loop(
 	target_block_index{_target_block_index}
 {}
 
+instruction_yield::instruction_yield(
+	int _line_number
+):
+	instruction{_line_number},
+	yield_ms{0}
+{}
+
+instruction_yield::instruction_yield(
+	int _line_number, 
+	const variable& _ms
+):
+	instruction{_line_number},
+	yield_ms{_ms}
+{}
+
 ////////////////////////////////////////////////////////////////////////////////
 //run methods...
 
@@ -556,6 +571,14 @@ void instruction_yield::run(
 ) const {
 
 	_ctx.signal=run_context::signals::sigyield;
+
+	auto yieldtime=solve(yield_ms, _ctx.symbol_table, line_number);
+	if(yieldtime.type!=variable::types::integer) {
+
+		error_builder::get()<<"yield time must solve to an integer value"<<throw_err{line_number, throw_err::types::interpreter};
+	}
+
+	_ctx.value=yieldtime;
 }
 
 void instruction_break::run(

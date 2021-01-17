@@ -38,7 +38,8 @@ std::string ascript::type_to_str(
 		case token::types::kw_loop: return "loop";
 		case token::types::kw_break: return "break";
 		case token::types::kw_endloop: return "endloop";
-		case token::types::kw_yield: return "yield"; 
+		case token::types::kw_yield: return "yield";
+		case token::types::kw_for: return "for";
 		case token::types::kw_exit: return "exit";
 		case token::types::kw_return: return "return";
 		case token::types::kw_let: return "let";

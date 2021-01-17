@@ -295,9 +295,11 @@ struct instruction_return:instruction {
 //!the interpreter is asked to resume.
 struct instruction_yield:instruction {
 
-                            instruction_yield(int _line_number):instruction{_line_number}{}
+                            instruction_yield(int _line_number);
+                            instruction_yield(int _line_number, const variable&);
 	void                    format_out(std::ostream&) const;
 	void                    run(run_context&)const;
+	variable                yield_ms;
 };
 
 //!instruction to break of a loop.

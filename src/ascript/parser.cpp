@@ -87,10 +87,7 @@ void parser::instruction_mode(
 		}
 		else if(token.type==token::types::kw_yield) {
 
-			expect(token::types::semicolon, "yield must be followed by a semicolon");
-			current_function.blocks[_block_index].instructions.emplace_back(
-				new instruction_yield(token.line_number)
-			);
+			yield_mode(_block_index, token);
 		}
 		else if(token.type==token::types::kw_break) {
 
@@ -146,6 +143,46 @@ void parser::instruction_mode(
 	error_builder::get()
 		<<_eof_err_msg
 		<<throw_err{0, throw_err::types::parser};
+}
+
+void parser::yield_mode(
+	int _block_index,
+	const token& _token
+) {
+
+	if(peek().type==token::types::kw_for) {
+
+		extract();
+		auto ms_token=extract();
+
+		variable ms{0};
+		if(is_static_value(ms_token)) {
+			
+			ms=build_variable(ms_token);
+		}
+		else if(ms_token.type==token::types::identifier) {
+
+			ms={ms_token.str_val, variable::types::symbol};
+		}
+		else {
+
+			error_builder::get()<<"integer or symbol expected after yield for"<<throw_err{ms_token.line_number, throw_err::types::parser};
+		}
+
+		expect(token::types::semicolon, "yield must be followed by a semicolon");
+		current_function.blocks[_block_index].instructions.emplace_back(
+			new instruction_yield(_token.line_number, ms)
+		);
+
+	}
+	else {
+
+		expect(token::types::semicolon, "yield must be followed by a semicolon");
+		current_function.blocks[_block_index].instructions.emplace_back(
+			new instruction_yield(_token.line_number)
+		);
+	}
+
 }
 
 void parser::loop_mode(

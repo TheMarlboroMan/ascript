@@ -9,6 +9,8 @@
 #include "ascript/interpreter.h"
 #include "ascript/stdout_out.h"
 
+//TODO: rewrite this example using the "environment" class.
+
 //Basic host implementation for demo purposes.
 class script_host:
 	public ascript::host {
@@ -351,7 +353,7 @@ void status(
 			std::cout<<"[failed]";
 		}
 		else if(!interpreter.is_finished()) {
-			std::cout<<"[yielding]";
+			std::cout<<"[yielding for "<<interpreter.get_yield_ms_left()<<" ms]";
 		}
 		else {
 			std::cout<<"[finished]";

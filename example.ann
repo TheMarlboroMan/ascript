@@ -45,6 +45,13 @@ beginfunction dumper [param as any];
 
 endfunction;
 
+beginfunction timed_yield [ms as int];
+
+	out ["will yield for ", ms, " milliseconds"];
+	yield for ms;
+
+endfunction;
+
 #main function, a small program that does some test calls and then will yield 
 #until a value is declared in the host.
 beginfunction main;

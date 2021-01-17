@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <chrono>
 
 namespace ascript {
 
@@ -58,6 +59,13 @@ class interpreter {
 	//!Returns true if the function failed.
 	bool                is_failed() const {return failed_signal;}
 
+	//!Returns true if the interpreter is yielding.
+	bool                is_yield() const {return yield_signal;}
+
+	//!Returns the number of milliseconds until a time yield ends. Throws if
+	//!there's no yield, returns 0 if not a timed yield.
+	int                 get_yield_ms_left() const;
+
 	//!Returns true if a function with the given name can be found;
 	bool                has_function(const std::string& _funcname) const {
 
@@ -104,6 +112,9 @@ class interpreter {
 	                    yield_signal{false},
 	//!Signal reserved to indicate that execution failed, raised only when an exception is thrown.
 	                    failed_signal{false};
+	//!Point in time in which a timed yield will release.
+	std::chrono::time_point<std::chrono::system_clock> yield_release_time;
+
 };
 
 }

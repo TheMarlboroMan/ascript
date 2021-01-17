@@ -27,6 +27,7 @@ tokenizer::tokenizer() {
 	typemap["break"]=token::types::kw_break;
 	typemap["endloop"]=token::types::kw_endloop;
 	typemap["yield"]=token::types::kw_yield;
+	typemap["for"]=token::types::kw_for;
 	typemap["return"]=token::types::kw_return;
 	typemap["fail"]=token::types::pr_fail;
 	typemap["let"]=token::types::kw_let;

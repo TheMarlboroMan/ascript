@@ -46,6 +46,9 @@ class parser {
 
 	//!Reading a return statement.
 	void                    return_mode(int, const token&);
+
+	//!Reading a yield statement.
+	void                    yield_mode(int, const token&);
 	
 	//!Reading loops...
 	void                    loop_mode(int, int);

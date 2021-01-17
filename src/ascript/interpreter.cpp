@@ -50,6 +50,12 @@ return_value interpreter::resume() {
 		throw std::runtime_error("called resume on non yielding process");
 	}
 
+	auto now=std::chrono::system_clock::now();
+	if(std::chrono::duration_cast<std::chrono::milliseconds>(yield_release_time-now).count() > 0) {
+
+		return {return_value::types::yield};
+	}
+
 	yield_signal=false;
 	return interpret();
 }
@@ -180,6 +186,15 @@ return_value interpreter::interpret() {
 			case run_context::signals::sigyield:
 
 				yield_signal=true;
+
+				//If there was a time expression in the yield, calculate the
+				//moment in which this interpreter becomes available again.
+				if(current_stack->context.value.int_val) {
+
+					auto now=std::chrono::system_clock::now();
+					yield_release_time=now+std::chrono::milliseconds(current_stack->context.value.int_val);
+				}
+
 				return {return_value::types::yield};
 			break;
 
@@ -387,4 +402,22 @@ std::map<std::string, variable> interpreter::prepare_symbol_table(
 	}
 
 	return symbol_table;
+}
+
+int interpreter::get_yield_ms_left() const {
+
+	if(!yield_signal) {
+
+		error_builder::get()<<"get_yield_ms_left cannot be called on non-yielding interpreter"
+			<<throw_err{0, throw_err::types::interpreter};
+	}
+
+	//Is it a timed yield?
+	if(false) {
+
+		return 0;
+	}
+
+	auto now=std::chrono::system_clock::now();
+	return std::chrono::duration_cast<std::chrono::milliseconds>(yield_release_time-now).count();
 }

@@ -32,6 +32,10 @@ ascript needs to be run from a C++ program. There are a few example programs bun
 
 Of course, ascript is for my own amusement. There are better, more stable and time-tested alternatives out there.
 
+###the input files
+
+Input files are plain text files that must contain ascript functions. There's no official extension, I use ".ann".
+
 ###the host
 
 The host is not exactly the program from within ascript runs, but a facility inside such program that is designed to interact with it. On its own, ascript supports only very simple arithmetic and logic but through a host interface it can access host calculations and instruct the host to perform any implementation-defined action.
@@ -170,6 +174,8 @@ Once the interpreter ends, it returns a "return_value" type which might hold:
 		//no return value.
 	}
 
+If a yielded value is returned the interpreter can be queried to whether or not it is blocked by a timed yield and how many milliseconds are left with get_yield_ms_left A return value of 0 (most likely) means a non timed yield. Positive values are for functions whose yield timer has not expired, and negative values are for those who expired.
+
 ###handling errors on the calling enviroment:
 
 All failures will throw an exception whose base type is "ascript_error".
@@ -243,7 +249,14 @@ There's no for or while loops. All loops expect to have some if clause that brea
 
 The keyword "yield" causes the execution of a function to be halted with no return value and returns control to the point where "run" was called. The interpreter can resume the function with a call to "resume" and the method "is_finished" can be used to query its state.
 
-The purpose of "yield" is to be able to run infinite loops without freezing the calling environment. It could be argued that the same functionality can be obtained with repeated "run" calls, but I wanted "yield" to exist anyhow.
+The purpose of non-timed "yield" is to be able to run infinite loops without freezing the calling environment. It could be argued that the same functionality can be obtained with repeated "run" calls, but I wanted "yield" to exist anyhow.
+
+Yield can also be used to halt execution for at least a number of milliseconds using:
+
+	yield for *variable_solving_to_milliseconds*;
+	yield for 1000;
+
+This form prevents the interpreter from resuming until the time has elapsed. Execution does not resume automatically: the interpreter must be queried about the time left (if any) before calling "resume". Calling "resume" on a time-yielding interpreter will return the yield value.
 
 ###calling built-in and user-defined functions
 

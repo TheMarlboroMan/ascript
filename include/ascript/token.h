@@ -49,6 +49,7 @@ struct token {
 		kw_break,
 		kw_endloop,
 		kw_yield,
+		kw_for,
 		kw_return,
 		kw_exit,
 		kw_let,
