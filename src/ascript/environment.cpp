@@ -166,12 +166,12 @@ void environment::erase(
 
 std::vector<std::size_t> environment::get_yield_ids() const {
 
-	std::vector<std::size_t> result{interpreters.size()};
+	std::vector<std::size_t> result;
 
 	std::transform(
 		std::begin(interpreters),
 		std::end(interpreters),
-		std::begin(result),
+		std::back_inserter(result),
 		[](const pack& _pack) {
 			return _pack.id;
 		}
