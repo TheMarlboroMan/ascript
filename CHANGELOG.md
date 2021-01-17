@@ -13,10 +13,11 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 - module support (precompiled functions, not evaluated at runtime).
 - more arithmetic functions (as needed).
 
-## [0.0.3] - 2021-01-17
+## [0.0.4] - 2021-01-17
 ### Added
 
 - added "yield for ms" statement, for timed yields.
+- added yield-related facilities (querying for yield time, mostly) to interpreters and environment.
 
 ## [0.0.3] - 2021-01-16
 ### Added

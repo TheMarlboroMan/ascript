@@ -163,3 +163,40 @@ void environment::erase(
 
 	interpreters.erase(it);
 } 
+
+std::vector<std::size_t> environment::get_yield_ids() const {
+
+	std::vector<std::size_t> result{interpreters.size()};
+
+	std::transform(
+		std::begin(interpreters),
+		std::end(interpreters),
+		std::begin(result),
+		[](const pack& _pack) {
+			return _pack.id;
+		}
+	);
+
+	return result;
+}
+
+int environment::get_yield_time(
+	std::size_t _id
+) const {
+
+	const auto it=std::find_if(
+		std::begin(interpreters),
+		std::end(interpreters),
+		[_id](const pack& _pack) {
+			return _pack.id==_id;
+		}
+	);
+
+	if(it==std::end(interpreters)) {
+
+		error_builder::get()<<"no interpreter with id '"<<_id<<throw_err{0, throw_err::types::user};
+	}
+
+	const auto& interpreter=it->interpreter;
+	return interpreter.get_yield_ms_left();
+}

@@ -21,6 +21,9 @@ class environment {
 	//!Class constructor.
 	                            environment(host&, out_interface&);
 
+	//!Returns the number of current (yielding) interpreters.
+	std::size_t                 size() const {return interpreters.size();}
+
 	//!Loads functions from a file.
 	void                        load(const std::string&);
 
@@ -38,6 +41,12 @@ class environment {
 
 	//!Resumes the interpreter with the given id.
 	return_value                resume(std::size_t);
+
+	//!Returns a vector with the identifiers of yielding interpreters.
+	std::vector<std::size_t>    get_yield_ids() const;
+
+	//!Returns the remaining yield time in milliseconds for the interpreter with the given id. Throws if no interpreter with that id is yielding.
+	int                         get_yield_time(std::size_t) const;
 
 	private: 
 
