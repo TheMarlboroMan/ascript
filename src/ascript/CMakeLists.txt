@@ -1,6 +1,7 @@
 set(SOURCE
 	${SOURCE}
 	${CMAKE_CURRENT_SOURCE_DIR}/token.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/tokenizer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/instructions.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/parser.cpp

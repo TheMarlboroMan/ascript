@@ -13,6 +13,12 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 - module support (precompiled functions, not evaluated at runtime).
 - more arithmetic functions (as needed).
 
+## [0.0.2] - 2021-01-17
+### Added
+
+- added environment class ready to load scripts and run interpreters, so reimplementations are not needed.
+
+
 ## [0.0.2] - 2021-01-14
 ### Changed
 
