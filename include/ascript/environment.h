@@ -24,6 +24,9 @@ class environment {
 	//!Returns the number of current (yielding) interpreters.
 	std::size_t                 size() const {return interpreters.size();}
 
+	//!returns true if a function with that name is loaded.
+	bool                        has_function(const std::string& _funcname) {return functions.count(_funcname);}
+
 	//!Removes all pending interpreters and resets the id counter. Does not remove functions.
 	void                        clear() {interpreters.clear(); counter=0;}
 
