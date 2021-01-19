@@ -13,6 +13,11 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 - module support (precompiled functions, not evaluated at runtime).
 - more arithmetic functions (as needed).
 
+## [0.0.5] - 2021-01-19
+### Added
+
+- added "has_function" to environment class.
+
 ## [0.0.4] - 2021-01-17
 ### Added
 
@@ -24,7 +29,6 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 ### Added
 
 - added environment class ready to load scripts and run interpreters, so reimplementations are not needed.
-
 
 ## [0.0.2] - 2021-01-14
 ### Changed
