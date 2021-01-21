@@ -335,6 +335,29 @@ variable instruction_add::evaluate(
 	);
 }
 
+void instruction_concatenate::run(
+	run_context& _ctx
+) const {
+
+	_ctx.value=evaluate(_ctx);
+}
+
+variable instruction_concatenate::evaluate(
+	run_context& _ctx
+) const {
+
+	auto solved=solve(arguments, _ctx.symbol_table, line_number);
+
+	return std::accumulate(
+		std::begin(solved)+1,
+		std::end(solved),
+		solved.front(),
+		[](const variable& _a, const variable& _b) {
+			return _a.concatenate(_b);
+		}
+	);
+}
+
 void instruction_substract::run(
 	run_context& _ctx
 ) const {
@@ -765,6 +788,17 @@ void instruction_add::format_out(
 ) const {
 
 	_stream<<"add[";
+	for(const auto& var : arguments) {
+		_stream<<var<<",";
+	}
+	_stream<<"]";
+}
+
+void instruction_concatenate::format_out(
+	std::ostream& _stream
+) const {
+
+	_stream<<"concatenate[";
 	for(const auto& var : arguments) {
 		_stream<<var<<",";
 	}

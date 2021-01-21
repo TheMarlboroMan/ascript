@@ -188,10 +188,32 @@ variable variable::operator+(
 		case variable::types::decimal:
 			return double_val+_other.double_val;
 		case variable::types::string:
-			return str_val+_other.str_val;
 		case variable::types::boolean:
 		case variable::types::symbol:
-			throw std::runtime_error("addition is only applicable to numeric and string types");
+			throw std::runtime_error("addition is only applicable to numeric types");
+	}
+
+	return false;
+}
+
+variable variable::concatenate(
+	const variable& _other
+) const {
+
+	if(type!=_other.type) {
+
+		throw std::runtime_error("addition type mismatch");
+	}
+
+	switch(type) {
+
+		case variable::types::string:
+			return str_val+_other.str_val;
+		case variable::types::integer:
+		case variable::types::decimal:
+		case variable::types::boolean:
+		case variable::types::symbol:
+			throw std::runtime_error("concatenation is only applicable to string types");
 	}
 
 	return false;

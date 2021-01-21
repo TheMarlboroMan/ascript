@@ -182,6 +182,15 @@ struct instruction_substract:instruction_function {
 	variable                evaluate(run_context&) const;
 };
 
+//!instruction to concatenate string parameters
+struct instruction_concatenate:instruction_function {
+
+                            instruction_concatenate(int _line_number):instruction_function{_line_number}{}
+	void                    format_out(std::ostream&) const;
+	void                    run(run_context&)const;
+	variable                evaluate(run_context&) const;
+};
+
 //!instruction to ask a host if it holds a symbol on its table.
 struct instruction_host_has:instruction_function {
 

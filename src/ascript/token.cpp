@@ -17,6 +17,7 @@ std::string ascript::type_to_str(
 		case token::types::fn_is_lesser_than: return "fn_is_lesser_than"; 
 		case token::types::fn_add: return "fn_add";
 		case token::types::fn_substract: return "fn_substract";
+		case token::types::fn_concatenate: return "fn_concatenate";
 		case token::types::fn_is_int: return "fn_is_int";
 		case token::types::fn_is_bool: return "fn_is_bool";
 		case token::types::fn_is_double: return "fn_is_double";

@@ -47,6 +47,8 @@ struct variable {
 	variable                operator+(const variable&) const;
 	//!Aritmetic operator which only works on numeric types.
 	variable                operator-(const variable&) const;
+	//!Concatenation operator.
+	variable                concatenate(const variable&) const;
 	bool                    bool_val{false}; //!<Boolean value
 	int                     int_val{0}; //!<Integer value
 	double                  double_val{0.}; //!<Double value

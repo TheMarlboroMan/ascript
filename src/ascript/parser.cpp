@@ -538,6 +538,9 @@ std::unique_ptr<instruction_function> parser::build_function(
 		case token::types::fn_add:
 			fnptr.reset(new instruction_add(_token_fn.line_number)); 
 			return fnptr;
+		case token::types::fn_concatenate:
+			fnptr.reset(new instruction_concatenate(_token_fn.line_number)); 
+			return fnptr;
 		case token::types::fn_substract:
 			fnptr.reset(new instruction_substract(_token_fn.line_number)); 
 			return fnptr;
@@ -755,6 +758,7 @@ bool parser::is_built_in_function(
 		case token::types::fn_host_query:
 		case token::types::fn_add:
 		case token::types::fn_substract:
+		case token::types::fn_concatenate:
 			return true;
 		default:
 			return false;

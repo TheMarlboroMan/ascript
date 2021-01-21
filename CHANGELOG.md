@@ -13,6 +13,11 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 - module support (precompiled functions, not evaluated at runtime).
 - more arithmetic functions (as needed).
 
+## [0.0.6] - 2021-01-21
+### Added
+
+- added "concatenate" to built-ins.
+
 ## [0.0.5] - 2021-01-19
 ### Added
 

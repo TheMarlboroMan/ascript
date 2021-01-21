@@ -42,6 +42,7 @@ tokenizer::tokenizer() {
 	typemap["as"]=token::types::kw_as;
 	typemap["add"]=token::types::fn_add;
 	typemap["substract"]=token::types::fn_substract;
+	typemap["concatenate"]=token::types::fn_concatenate;
 	typemap["host_has"]=token::types::fn_host_has;
 	typemap["host_add"]=token::types::pr_host_add;
 	typemap["host_get"]=token::types::fn_host_get;

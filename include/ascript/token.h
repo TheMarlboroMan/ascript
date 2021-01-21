@@ -27,6 +27,7 @@ struct token {
 		fn_is_lesser_than,
 		fn_add,
 		fn_substract,
+		fn_concatenate,
 		fn_is_int,
 		fn_is_bool,//done
 		fn_is_double,
