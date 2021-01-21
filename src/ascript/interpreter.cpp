@@ -65,10 +65,14 @@ return_value interpreter::resume() {
 		return {return_value::types::yield};
 	}
 
-	auto now=std::chrono::system_clock::now();
-	if(std::chrono::duration_cast<std::chrono::milliseconds>(yield_release_time-now).count() > 0) {
+	if(yield_release_time!=std::chrono::system_clock::time_point::min()) {
 
-		return {return_value::types::yield};
+		auto now=std::chrono::system_clock::now();
+		auto count=std::chrono::duration_cast<std::chrono::milliseconds>(yield_release_time-now).count();
+		if(count > 0) {
+
+			return {return_value::types::yield};
+		}
 	}
 
 	yield_release_time=std::chrono::system_clock::time_point::min();
