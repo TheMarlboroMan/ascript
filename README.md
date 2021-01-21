@@ -310,7 +310,7 @@ The opposite of "is_greater_than".
 
 ####add
 
-Returns a numeric value that results of adding all of its parameters, which must be of the same numeric type.
+Returns a numeric / string value that results of adding / concatenating all of its parameters, which must be of the same exact type.
 
 let a be 1;
 let b be 2;

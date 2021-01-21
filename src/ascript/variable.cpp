@@ -187,10 +187,11 @@ variable variable::operator+(
 			return int_val+_other.int_val;
 		case variable::types::decimal:
 			return double_val+_other.double_val;
-		case variable::types::boolean:
 		case variable::types::string:
+			return str_val+_other.str_val;
+		case variable::types::boolean:
 		case variable::types::symbol:
-			throw std::runtime_error("addition is only applicable to numeric types");
+			throw std::runtime_error("addition is only applicable to numeric and string types");
 	}
 
 	return false;
