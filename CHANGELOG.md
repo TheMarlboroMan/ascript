@@ -13,6 +13,10 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 - module support (precompiled functions, not evaluated at runtime).
 - more arithmetic functions (as needed).
 
+## [0.0.7] - 2021-01-24
+### Fixed
+- should fix non empty string bugs
+
 ## [0.0.6] - 2021-01-21
 ### Added
 

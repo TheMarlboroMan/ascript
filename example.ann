@@ -63,6 +63,8 @@ endfunction;
 #until a value is declared in the host.
 beginfunction main;
 
+	out ["an empty string follows", ""];
+
 	out ["begin test calls..."];
 	returns_nothing ["my string"];
 	let result be returns_something ["my string"];

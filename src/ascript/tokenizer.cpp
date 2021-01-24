@@ -99,10 +99,14 @@ std::vector<ascript::token> tokenizer::from_string(
 			//Did it start a string literal???
 			if(starts_string) {
 
-				//a string of a single word...
-				if(strtoken.back()=='"') {
+				//a string of a single word... or empty string
+				if(strtoken.back()=='"' || !strtoken.size()) {
 
-					strtoken.pop_back();
+					//Hack for empty strings... I need to rewrite this.
+					if(strtoken.size()) {
+						strtoken.pop_back();
+					}
+
 					result.push_back({token::types::val_string, strtoken, 0, 0.0, false, line_number});
 					if(affix.size()) {
 
