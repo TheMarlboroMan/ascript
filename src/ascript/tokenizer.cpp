@@ -73,6 +73,7 @@ std::vector<ascript::token> tokenizer::from_string(
 	while(true) {
 
 		std::stringstream ss{reader.read_line()};
+
 		if(reader.is_eof()) {
 
 			break;
@@ -90,23 +91,31 @@ std::vector<ascript::token> tokenizer::from_string(
 			}
 
 			ss>>strtoken;
-
 			std::vector<token> affix;
 
+			//Hack hack hack hack... 
 			bool starts_string{false};
-			peel_token(strtoken, result, affix, starts_string, line_number);
+			bool empty_string{false};
+			peel_token(strtoken, result, affix, starts_string, empty_string, line_number);
+
+			if(empty_string) {
+
+				result.push_back({token::types::val_string, "", 0, 0.0, false, line_number});
+				if(affix.size()) {
+
+					result.insert(std::end(result), std::rbegin(affix), std::rend(affix));
+				}
+
+				continue;
+			}
 
 			//Did it start a string literal???
 			if(starts_string) {
 
 				//a string of a single word... or empty string
-				if(strtoken.back()=='"' || !strtoken.size()) {
+				if(strtoken.back()=='"') {
 
-					//Hack for empty strings... I need to rewrite this.
-					if(strtoken.size()) {
-						strtoken.pop_back();
-					}
-
+					strtoken.pop_back();
 					result.push_back({token::types::val_string, strtoken, 0, 0.0, false, line_number});
 					if(affix.size()) {
 
@@ -185,6 +194,7 @@ void tokenizer::peel_token(
 	std::vector<token>& _result,
 	std::vector<token>& _affix,
 	bool& _starts_string,
+	bool& _empty_string,
 	int _line_number
 ) {
 
@@ -197,38 +207,54 @@ void tokenizer::peel_token(
 	char first=_strtoken.front();
 	if(first=='"') {
 
+		//Here's a nasty hack... something like ,"", will peel a comma, and peel
+		//the two quotes, leaving us with two consecutive commas.
+		//so we just leave. Of course, something like ,""""""", will just count
+		//as an empty string, and that's why we need a character based tokenizer.
+		if(_starts_string) {
+
+			_empty_string=true;
+			_strtoken.erase(0, 1);
+			return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
+		}
+
 		_strtoken.erase(0, 1);
 		_starts_string=true;
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
+
+		return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
 	}
 
-	if(first==';') {
+	//The nasty hacks multiply...
+	if(!_empty_string) {
 
-		_result.push_back({token::types::semicolon, "", 0, 0.0, false, _line_number});
-		_strtoken.erase(0, 1);
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
-	}
+		if(first==';') {
 
-	if(first==',') {
+			_result.push_back({token::types::semicolon, "", 0, 0.0, false, _line_number});
+			_strtoken.erase(0, 1);
+			return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
+		}
 
-		_result.push_back({token::types::comma, "", 0, 0.0, false, _line_number});
-		_strtoken.erase(0, 1);
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
-	}
-	
-	if(first==']') {
+		if(first==',') {
 
-		_result.push_back({token::types::close_bracket, "", 0, 0.0, false, _line_number});
-		_strtoken.erase(0, 1);
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
-	}
+			_result.push_back({token::types::comma, "", 0, 0.0, false, _line_number});
+			_strtoken.erase(0, 1);
+			return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
+		}
+		
+		if(first==']') {
 
-	if(first=='[') {
+			_result.push_back({token::types::close_bracket, "", 0, 0.0, false, _line_number});
+			_strtoken.erase(0, 1);
+			return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
+		}
 
-		_result.push_back({token::types::open_bracket, "", 0, 0.0, false, _line_number});
-		_strtoken.erase(0, 1);
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
-	}
+		if(first=='[') {
+
+			_result.push_back({token::types::open_bracket, "", 0, 0.0, false, _line_number});
+			_strtoken.erase(0, 1);
+			return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
+		}
+	} 
 
 	//There may  be tokens to affix...
 	char last=_strtoken.back();
@@ -236,28 +262,28 @@ void tokenizer::peel_token(
 
 		_affix.push_back({token::types::semicolon, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
+		return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
 	}
 
 	if(last==',') {
 
 		_affix.push_back({token::types::comma, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
+		return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
 	}
 	
 	if(last==']') {
 
 		_affix.push_back({token::types::close_bracket, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
+		return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
 	}
 
 	if(last=='[') {
 
 		_affix.push_back({token::types::open_bracket, "", 0, 0.0, false, _line_number});
 		_strtoken.pop_back();
-		return peel_token(_strtoken, _result, _affix, _starts_string, _line_number);
+		return peel_token(_strtoken, _result, _affix, _starts_string, _empty_string, _line_number);
 	}
 
 	//The rest, is the regular token to work with.

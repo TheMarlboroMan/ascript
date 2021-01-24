@@ -27,7 +27,7 @@ class tokenizer {
 	private:
 
 	//!Internal function that peels a string from leading and read significant characters.
-	void                        peel_token(std::string&, std::vector<token>&, std::vector<token>&, bool&, int);
+	void                        peel_token(std::string&, std::vector<token>&, std::vector<token>&, bool&, bool&, int);
 	//!Tries to interpret a string as a keyword.
 	bool                        try_keyword(const std::string&, std::vector<token>&, int);
 	//!Tries to interpret a string as a boolean.
