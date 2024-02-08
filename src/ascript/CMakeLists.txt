@@ -10,6 +10,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/variable.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/stdout_out.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/return_value.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/lib.cpp
 	PARENT_SCOPE
 )
 
