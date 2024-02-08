@@ -18,7 +18,7 @@ int main(
 		ascript::tokenizer tk;
 		const auto tokens=tk.from_file(_argv[1]);
 
-		for(const auto token : tokens) {
+		for(const auto &token : tokens) {
 
 			std::cout<<token<<std::endl;
 		}

@@ -485,7 +485,7 @@ void dump_table(
 	const script_host& _host
 ) {
 
-	for(const auto pair : _host.symbol_table) {
+	for(const auto &pair : _host.symbol_table) {
 
 		std::cout<<pair.first<<" : "<<pair.second<<std::endl;
 	}
